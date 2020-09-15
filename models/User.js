@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const UserSchema = new mongoose.Schema({
     name: {
@@ -28,19 +29,51 @@ const UserSchema = new mongoose.Schema({
         default: 'user'
     },
 
+    tokens: [{
+        token: {
+            type: String,
+            required: true
+        }
+    }],
+
+    avatar: {
+        type: String,
+        default: '/img/user/user-default.png'
+    },
+
     resetPasswordToken: String,
 
-    resetPasswordExpire: Date,
+    resetPasswordExpire: Date
 
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
+    // createdAt: {
+    //     type: Date,
+    //     default: Date.now
+    // }
+},
+{
+    timestamps: true,
+    // ubacivanje virtuals tj properties koje ne postoje u mongo bazi
+    // da bi se videle u res.json ovo se dodaje
+    toJSON: {virtuals: true},
+    toObject: {virtuals: true}
+
+});
+
+UserSchema.virtual('products', {
+    ref: 'Product',
+    localField: '_id',
+    foreignField: 'createdByUser',
+    justOne: false
 });
 
 // encripcija passworda sa bcryptom, dodato je kao middleware ovde da se nebi komplikovao controller
 // ako middleware sadrzi async fju onda ne mora (a moze!) da se stavlja next
-UserSchema.pre('save', async function() {
+UserSchema.pre('save', async function(next) {
+    // prilikom snimanja u bazu generisanog tokena u tokens ili generisanog reset tokena i vremena isteka u controlleru
+    // ukoliko sifra nije promenjena preskoci bcrypt
+    if (!this.isModified('password')) {
+        next();
+    }
     // pozivanje bcrypta - async fja
     // sto je veći broj u zagradi veca je sigurnost, ali usporava sistem
     const salt = await bcrypt.genSalt(10);
@@ -59,8 +92,24 @@ UserSchema.methods.getSignedJwtToken = function() {
 };
 
 // methods za proveru unesene sifre i one bcryptovane u bazu
-UserSchema.methods.passwordMatchCheck = async function (enteredPass) {
-    return await bcrypt.compare(enteredPass, this.password);
+UserSchema.methods.passwordMatchCheck = function(enteredPass) {
+    return bcrypt.compare(enteredPass, this.password);
 };
+
+// methods za generisanje reset tokena kad se zaboravi sifra
+UserSchema.methods.getResetPasswordToken = function() {
+
+    // core modul crypto za generisanje 20 bita
+    // metod vraca buffer pa se prebacuje u string
+    const resetToken = crypto.randomBytes(20).toString('hex');
+
+    // hash tokena i dodeljivanje
+    this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // trajanje tokena 10 min
+    this.resetPasswordExpire = Date.now() + 10 *60 *1000;
+
+    return resetToken;
+}
 
 module.exports = mongoose.model('User', UserSchema);
