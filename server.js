@@ -57,10 +57,11 @@ if (process.env.NODE_ENV === 'development') {
 app.use(mongoSanitize());
 
 // dodatno setovanje security headera
-//app.use(helmet());
+app.use(helmet());
 
 // prevencija XSS - input sadrzi script tag ili html koji se kasnije prilikom prikazivanja moze ucitati u stranu, pre routa se poziva
-app.use(xss());
+// BLOKIRA SORT U ADVANCED RESULTS
+//app.use(xss());
 
 // ogranicavanje broja requesta serveru
 // Enable if you're behind a reverse proxy (Heroku, Bluemix, AWS ELB, Nginx, etc)

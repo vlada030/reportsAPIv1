@@ -59,16 +59,17 @@ exports.register = asyncHandler(async (req, res, next) => {
     
     const {name, email, password, confirmPassword} = req.body;
 
-    const errors = validationResult(req);
-    //console.log(errors)
-    
+    const  errors = validationResult(req);
+    const errorsString = errors.array().reduce((acc, val) => {
+        acc += `${val.msg}; `;
+        return acc
+    }, '');
+        
     // validacija preko express-validatora
-    // implementirano pamcenje prethodnog unosa
     if (!errors.isEmpty()) {
-        return res.status(422).render("user_registration", {
-            title: "Registracija novog korisnika",
-            errorMessage: errors.array()[0].msg,
-            oldInput: {name, email, password, confirmPassword}
+        return res.status(401).json({
+            success: false,
+            data: errorsString
         })
     }
 
@@ -76,12 +77,11 @@ exports.register = asyncHandler(async (req, res, next) => {
 
     if (emailExist) {
         //req.flash('error', 'Korisnik sa unetim e-mailom postoji')
-        // return res.redirect('/api/v2/auth/register');
-        return res.status(422).render("user_registration", {
-            title: "Registracija novog korisnika",
-            errorMessage: 'Korisnik sa unetim e-mailom postoji',
-            oldInput: {name, email, password, confirmPassword}
-        })
+        // return res.redirect('/api/v1/auth/register');
+        return res.status(422).json({
+            success: false,
+            data: 'Korisnik sa unetim e-mailom postoji'
+        });
     }
 
     const user = await User.create({
@@ -100,7 +100,7 @@ exports.register = asyncHandler(async (req, res, next) => {
     
     
 // @desc   Login User
-// @route  POST /api/v2/auth/login
+// @route  POST /api/v1/auth/login
 // @access Public
 
 exports.login = asyncHandler(async (req, res, next) => {
@@ -117,7 +117,7 @@ exports.login = asyncHandler(async (req, res, next) => {
 
         return next(new ErrorResponse('Unesite email i šifru', 400));        
     }
-    // gore iznad select: false znaci da nam ne vraca sifru, ali ovde nam je potrebna da bi mogli da uporedimo sifre i dodajemo select(+password)
+    // u User modelu select: false znaci da nam ne vraca sifru, ali ovde nam je potrebna da bi mogli da uporedimo sifre i dodajemo select(+password)
     const user = await User.findOne({email}).select('+password');
 
     if (!user) {
@@ -141,7 +141,7 @@ exports.login = asyncHandler(async (req, res, next) => {
 
 
 // @desc   Get loged user
-// @route  GET /api/v2/auth/me
+// @route  GET /api/v1/auth/me
 // @access Private
 
 exports.getMe = asyncHandler(async (req, res) => {
@@ -157,7 +157,7 @@ exports.getMe = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update loged user info 
-// @route   PUT /api/v2/auth/updateDetails
+// @route   PUT /api/v1/auth/updateDetails
 // @access  Private
 
 exports.updateDetails = asyncHandler(async (req, res, next) => {
@@ -176,7 +176,7 @@ exports.updateDetails = asyncHandler(async (req, res, next) => {
 }); 
 
 // @desc    Update loged user password 
-// @route   PUT /api/v2/auth/updatePassword
+// @route   PUT /api/v1/auth/updatePassword
 // @access  Private
 
 exports.updatePassword = asyncHandler(async (req, res, next) => {
@@ -201,7 +201,7 @@ exports.updatePassword = asyncHandler(async (req, res, next) => {
 }); 
 
 // @desc    Forgotten password link
-// @route   POST /api/v2/auth/resetpassword
+// @route   POST /api/v1/auth/resetpassword
 // @access  Public
 
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
@@ -217,7 +217,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
     // snimanje hashovanog tokena i vremena isteka
     await user.save();
 
-    const resetUrl = `${req.protocol}://${req.get('host')}/api/v2/auth/resetpassword/${resetToken}`;
+    const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/resetpassword/${resetToken}`;
 
     //slanje emaila sa linkom za reset
     try {
@@ -245,7 +245,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    Reset password
-// @route   PUT /api/v2/auth/resetpassword/:resettoken
+// @route   PUT /api/v1/auth/resetpassword/:resettoken
 // @access  Public
 
 exports.resetPassword = asyncHandler(async (req, res, next) => {
@@ -271,7 +271,7 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    Create / Update user avatar
-// @route   POST /api/v2/auth/me/avatar
+// @route   POST /api/v1/auth/me/avatar
 // @access  Private
 
 exports.updateAvatar = asyncHandler(async (req, res, next) => {
@@ -297,7 +297,7 @@ exports.updateAvatar = asyncHandler(async (req, res, next) => {
 }); 
 
 // @desc    Get user avatar
-// @route   GET /api/v2/users/me/avatar
+// @route   GET /api/v1/users/me/avatar
 // @access  Private
 
 exports.getAvatar = asyncHandler(async (req, res, next) => {
@@ -319,7 +319,7 @@ exports.getAvatar = asyncHandler(async (req, res, next) => {
  }); 
 
 // @desc    Delete user avatar
-// @route   DELETE /api/v2/auth/me/avatar
+// @route   DELETE /api/v1/auth/me/avatar
 // @access  Private
 
 exports.deleteAvatar = asyncHandler(async (req, res, next) => {
@@ -339,13 +339,14 @@ exports.deleteAvatar = asyncHandler(async (req, res, next) => {
 }); 
 
 // @desc    Log user out & clear cookie 
-// @route   POST /api/v2/auth/logout
+// @route   POST /api/v1/auth/logout
 // @access  Private
 
 exports.logout = asyncHandler(async (req, res, next) => {
 
     // brisanje tokena iz kog hocemo da se izlogujemo, ostali ostaju
-    req.user.tokens = req.user.tokens.filter(token => token.token !== req.session.token );    
+    req.user.tokens = req.user.tokens.filter(token => token.token !== req.cookies.token ); 
+
     await req.user.save();
 
     // postavljanje cookija na vrednost none
@@ -354,21 +355,20 @@ exports.logout = asyncHandler(async (req, res, next) => {
         httpOnly: true
     });
 
-    
     res.status(200).json({
             success: true,
-            data: "Current user session logged out"
+            data: "Korisnik je uspešno izlogovan"
         });
         
     }); 
 
 // @desc    Log user out & clear cookie 
-// @route   POST /api/v2/auth/logoutAll
+// @route   POST /api/v1/auth/logoutAll
 // @access  Private
 
 exports.logoutAll = asyncHandler(async (req, res, next) => {
     
-    // brisanje svih tokena tj brisanje svoh sessions, izlogujemo se iz svih uređaja
+    // brisanje svih tokena tj brisanje svih sessions, izlogujemo se iz svih uređaja
     req.user.tokens = [];
     await req.user.save();
 
@@ -380,13 +380,13 @@ exports.logoutAll = asyncHandler(async (req, res, next) => {
     
     res.status(200).json({
         success: true,
-        data: "All user's sessions logged out"
+        data: "Izlogovani ste sa svih uređaja"
     });
     
 });
 
 // @desc    Delete Logged user 
-// @route   DELETE /api/v2/auth/me
+// @route   DELETE /api/v1/auth/me
 // @access  Private
 
 exports.deleteMe = asyncHandler(async (req, res, next) => {
@@ -400,7 +400,7 @@ exports.deleteMe = asyncHandler(async (req, res, next) => {
     });
 
     // slanje emaila sa potvrdom brisanja svog accounta
-    //sendCancelEmail(req.user.name, req.user.email);
+    sendCancelEmail(req.user.name, req.user.email);
 
     res.status(200).json({
         success: true,

@@ -37,12 +37,12 @@ router
         register
     );
 router.route("/login").post(login);
-router.route("/me").get( getMe).delete(deleteMe);
+router.route("/me").get(protect, getMe).delete(protect, deleteMe);
 router
     .route("/me/avatar")
-    .get(getAvatar)
-    .post(uploadUserPhoto, updateAvatar)
-    .delete(deleteAvatar);
+    .get(protect, getAvatar)
+    .post(protect, uploadUserPhoto, updateAvatar)
+    .delete(protect, deleteAvatar);
 router.post("/logout", protect, logout);
 router.post("/logoutAll", protect, logoutAll);
 router.put("/update", updateDetails);

@@ -1,7 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 
-const {getProducts, getProduct, getProductJSON, getCreateProductHTML, getUpdateProductHTML, getAllProductsHTML, createProduct, updateProduct, deleteProduct} = require('../controllers/productsController');
+const {getProducts, getProduct, createProduct, updateProduct, deleteProduct} = require('../controllers/productsController');
 const advancedResults = require('../middleware/advancedResults');
 const Product = require('../models/Product');
 
@@ -10,10 +10,8 @@ const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.route('/').get(advancedResults(Product), getProducts);
-router
-    .route("/create")
-    .get(protect, getCreateProductHTML)
+router.route('/')
+    .get(advancedResults(Product), getProducts)
     .post(
         protect,
         [
@@ -59,18 +57,16 @@ router
         ],
         createProduct
     );
-router.route('/update').get(protect, getUpdateProductHTML);
-router.route('/allProducts').get(protect, getAllProductsHTML);
 router
     .route("/:id")
     .get(protect, getProduct)
-    .put(
+    .patch(
         protect,
         [
             body("proizvod", "Naziv proizvoda sadrži od 2 do 45 slova/broja")
                 .isLength({ min: 2, max: 45 })
                 .trim(),
-            body("propis", "Naziv standarda sadrži najviše 40 slova/broja")
+            body("propis", "Naziv standarda sadrži najviše 40 slova / broja")
                 .isLength({ min: 1, max: 40 })
                 .trim(),
             body("brojZica", "Broj žica provodnika je u intervalu 1 - 2500")
@@ -101,6 +97,5 @@ router
         updateProduct
     )
     .delete(protect, deleteProduct);
-router.route('/:id/json').get(protect, getProductJSON);
 
 module.exports = router;
