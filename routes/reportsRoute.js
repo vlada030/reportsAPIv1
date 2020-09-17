@@ -4,7 +4,7 @@ const {body} = require('express-validator');
 
 const { getAllDomReports, getDomReport, createDomReport,updateDomReport, deleteDomReport} = require('../controllers/domReportsController');
 
-const { getExpReportsHTML, createExpReport, getAllExpReports, getAllExpReportsHTML, getExpReport, updateExpReport, deleteExpReport } = require('../controllers/expReportsController');
+const { getExpReport, createExpReport, getAllExpReports, updateExpReport, deleteExpReport } = require('../controllers/expReportsController');
 
 const {getShiftReportsHTML, createShiftReport, getAllShiftReports, getAllShiftReportsHTML, getShiftReport, updateShiftReport, deleteShiftReport} = require('../controllers/shiftReportsController');
 
@@ -16,6 +16,7 @@ const ShiftReport = require('../models/ShiftReport');
 
 const router = express.Router();
 
+// DOM REPORTS
 router
     .route("/dom")
     .get(protect, advancedResults(DomReport, {path: 'createdByUser', select: 'name'}), getAllDomReports)
@@ -121,22 +122,22 @@ router
         updateDomReport
     );
 
+// EXP REPORTS
+
 router
     .route("/exp")
-    .get(getExpReport)
+    .get(protect, advancedResults(ExpReport, {path: 'createdByUser', select: 'name'}),  getAllExpReports)
     .post(
         protect,
         [
             body("sifra", "Šifra se sastoji od 7 cifara")
                 .isNumeric()
                 .isLength({ min: 7, max: 7 })
-                .trim()
-                .escape(),
+                .trim(),
             body("godina", "Godina sadrži 4 cifre")
                 .isNumeric()
                 .isLength({ min: 4, max: 4 })
-                .trim()
-                .escape(),
+                .trim(),
             // body("dobos_1", "Broj na stranici ili MIS Broj doboša može imati 7 - 10 karaktera")
             //     .isLength({ min: 7, max: 11 })
             //     .trim()
@@ -166,10 +167,14 @@ router
         ],
         createExpReport
     );
-router.route('/exp/all').get(protect,advancedResults(ExpReport, {path: 'createdByUser', select: 'name'}),  getAllExpReports);
-router.route('/exp/allReports').get(getAllExpReportsHTML);
-router.route('/exp/:id').get(getExpReport).delete(protect, deleteExpReport).put(protect, updateExpReport);
 
+router
+    .route("/exp/:id")
+    .get(protect, getExpReport)
+    .delete(protect, deleteExpReport)
+    .put(protect, updateExpReport);
+
+// SHIFT REPORTS
 router
     .route("/shift")
     .get(getShiftReportsHTML)
