@@ -47,14 +47,15 @@ exports.getProducts = asyncHandler(async (req, res, next) => {
 
 exports.getProduct = asyncHandler(async (req, res, next) => {
     
-    const product = await Product.find({sifra: req.params.id}).populate({
-        path: 'createdByUser',
-        select: 'name email'
-    }).populate({
-        path: 'modifiedByUser',
-        select: 'name email'
-    });
-    
+    const product = await Product.find({sifra: req.params.id})
+        .populate({
+            path: 'createdByUser',
+            select: 'name email'
+        }).populate({
+            path: 'modifiedByUser',
+            select: 'name email'
+        });
+        
     if (product.length !== 1) {
         return next(new ErrorResponse(`Proizvod sa šifrom ${req.params.id} nije pronađen`, 404)); 
     }    
@@ -137,8 +138,13 @@ exports.updateProduct = asyncHandler(async (req, res, next) => {
     //req.fields.modifiedAt = Date.now();
 
     product = await Product.findOneAndUpdate({sifra: req.params.id}, req.body, {
-        new: true
-        //     new: true, 
+        new: true,
+        // ako ne postoji sifra ovim ce da je kreira
+        //     upsert: true
+        // vrsi update samo elemenata koji postoje u req.body
+        //     overwrite: true
+
+        // Pokrece mongoose validaciju
         //     runValidators: true,
         //     context: 'query'
         
@@ -230,7 +236,8 @@ const decimal128ToStringOutput = (arrOfProductProperties) => {
                 ispitniNapon: product.ispitniNapon,
                 createdAt,
                 updatedAt,
-                createdByUser: product.createdByUser
+                createdByUser: product.createdByUser,
+                modifiedByUser: product.modifiedByUser
             };
 
         } catch (error) {

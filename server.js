@@ -60,7 +60,7 @@ app.use(mongoSanitize());
 app.use(helmet());
 
 // prevencija XSS - input sadrzi script tag ili html koji se kasnije prilikom prikazivanja moze ucitati u stranu, pre routa se poziva
-// BLOKIRA SORT U ADVANCED RESULTS
+// BLOKIRA SORT U ADVANCED RESULTS tj znak '<'
 //app.use(xss());
 
 // ogranicavanje broja requesta serveru
@@ -70,7 +70,7 @@ app.use(helmet());
  
 const limiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
-    max: 400 // limit each IP to 100 requests per windowMs
+    max: 100 // limit each IP to 100 requests per windowMs
   });
    
 //  apply to all requests
