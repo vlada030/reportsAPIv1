@@ -69,7 +69,7 @@ exports.register = asyncHandler(async (req, res, next) => {
     if (!errors.isEmpty()) {
         return res.status(401).json({
             success: false,
-            data: errorsString
+            error: errorsString
         })
     }
 
