@@ -16,6 +16,8 @@ router
                 .not()
                 .isEmpty()
                 .withMessage("Unesite korisničko ime")
+                .isLength({ max: 15 })
+                .withMessage("Korisničko ime može sadržati najviše 15 karaktera")
                 .trim(),
             check("email")
                 .isEmail()
@@ -38,15 +40,33 @@ router
     );
 router.route("/login").post(login);
 router.route("/me").get(protect, getMe).delete(protect, deleteMe);
-router
-    .route("/me/avatar")
-    .get(protect, getAvatar)
-    .post(protect, uploadUserPhoto, updateAvatar)
-    .delete(protect, deleteAvatar);
+router.route("/avatar").put(protect, uploadUserPhoto, updateAvatar)
 router.post("/logout", protect, logout);
 router.post("/logoutAll", protect, logoutAll);
-router.put("/update", updateDetails);
-router.put("/updatepassword", updatePassword);
+router.put(
+    "/update",
+    protect,
+    [
+        body("name")
+            .optional()
+            .isLength({ max: 15 })
+            .withMessage("Korisničko ime može sadržati najviše 15 karaktera")
+            .trim(),
+        check("email")
+            .optional()
+            .isEmail()
+            .withMessage("Unesite ispravnu email adresu")
+            .normalizeEmail(),
+    ],
+    updateDetails
+);
+router.put("/updatepassword", 
+    protect,
+    [
+        body("password",
+        "Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera")
+            .isLength({ min: 7, max: 15 })
+    ], updatePassword);
 router.post("/resetpassword", forgotPassword);
 router.put("/resetpassword/:resettoken", resetPassword);
 

@@ -157,15 +157,27 @@ exports.getMe = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update loged user info 
-// @route   PUT /api/v1/auth/updateDetails
+// @route   PUT /api/v1/auth/update
 // @access  Private
 
 exports.updateDetails = asyncHandler(async (req, res, next) => {
-    const { name, email } = req.body;
+
+    const  errors = validationResult(req);
+    const errorsString = errors.array().reduce((acc, val) => {
+        acc += `${val.msg}; `;
+        return acc
+    }, '');
+        
+    // validacija preko express-validatora
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            error: errorsString
+        })
+    }
     
-    const user = await User.findByIdAndUpdate(req.user.id, {name, email}, {
+    const user = await User.findByIdAndUpdate(req.user.id, req.body, {
         new: true,
-        runValidators: true
     });  
     
     res.status(200).json({
@@ -185,14 +197,13 @@ exports.updatePassword = asyncHandler(async (req, res, next) => {
 
     // pozivamo methods iz User modela
     if (!(await user.passwordMatchCheck(req.body.currentPassword))) {
-        return next(new ErrorResponse('Postojeca sifra neispravna', 401));
+        return next(new ErrorResponse('Unesite ispravnu sadašnju šifru', 401));
     }
 
     user.password = req.body.newPassword;
-    // snimamo sa validateBeforeSave: true
 
-    // izbrisi postojeci token iz tokens array
-    user.tokens = user.tokens.filter(token => token.token !== req.session.token);
+    // izbrisi sve tokene iz tokens array
+    user.tokens = [];
 
     await user.save();
     // prilikom promene ili resetovanja sifre VRACA SE TOKEN - pravilo
@@ -282,10 +293,12 @@ exports.updateAvatar = asyncHandler(async (req, res, next) => {
     
     //req.user.avatar = req.file.buffer;
     // dodavanje sharp modula za narmalizaciju slike resize / png i vracanje u buffer format zbog snimanja u db
-    const buffer = await sharp(req.file.buffer).resize({width: 250, height: 250}).png().toBuffer();
+    //const buffer = await sharp(req.file.buffer).resize({width: 250, height: 250}).png().toBuffer();
+    const ext = req.file.mimetype.split("/")[1];
+    const url = `/public/img/users/user-${req.user.id}-${Date.now()}.${ext}`;
 
     //const user = await req.user.save();
-    const user = await User.findByIdAndUpdate(req.user.id, {avatar: buffer}, {
+    const user = await User.findByIdAndUpdate(req.user.id, {avatar: url}, {
         new: true
     });
 
