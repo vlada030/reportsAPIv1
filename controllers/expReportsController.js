@@ -28,7 +28,9 @@ exports.getAllExpReports = asyncHandler( async(req, res, next) => {
 
 exports.getExpReport = asyncHandler( async(req, res, next) => {
 
-    const report = await ExpReport.findOne({_id: req.params.id})
+    const id = req.params.id;
+
+    const report = await ExpReport.findById(id)
         .populate({
             path: "createdByUser",
             select: "name",
@@ -45,7 +47,7 @@ exports.getExpReport = asyncHandler( async(req, res, next) => {
     if (!report) {
         return next(
             new ErrorResponse(
-                `Izveštaj sa id brojem ${req.params.id} ne postoji`,
+                `Izveštaj sa id brojem ${id} ne postoji`,
                 400
             )
         );
@@ -96,19 +98,40 @@ exports.createExpReport = asyncHandler( async(req, res, next) => {
 
 exports.updateExpReport = asyncHandler( async(req, res, next) => {
     
-    let report = await ExpReport.findById(req.params.id);
+    req.body.updatedByUser = req.user.id;
+    const id = req.params.id;
+    
+    // cupanje errors iz express-validatora
+    const errors = validationResult(req);
+    const errorsString = errors.array().reduce((acc, val) => {
+        acc += `${val.msg}; `;
+        return acc
+    }, '');
+        
+    // validacija preko express-validatora
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            error: errorsString
+        })
+    }
+
+    // proveri da li izveštaj postoji nakon validacije, da se ne opterecuje baza bezveze
+    let report = await ExpReport.findById(id);
 
     if (!report) {
-        return next(new ErrorResponse('Zahtevani izvestaj ne postoji', 400));
+        return next(new ErrorResponse(`Izveštaj sa Id brojem ${id} ne postoji`, 400));
     }
+
+
+    report = await ExpReport.findByIdAndUpdate(
+        id,
+        req.body,
+        {
+            new: true
+        }
+    );
    
-    req.body.updatedByUser = req.user.id;
-
-    report = await ExpReport.findByIdAndUpdate(req.params.id, req.body, {
-        runValidators: false,
-        new: true
-    });
-
     res.status(200).json({
        success: true,
        data: report
@@ -120,15 +143,24 @@ exports.updateExpReport = asyncHandler( async(req, res, next) => {
 // @access Private
 
 exports.deleteExpReport = asyncHandler( async(req, res, next) => {
-    const lang = req.query.lang || 'ser';
+    // prvo proveri da li izvestaj postoji
+    const id = req.params.id;
 
-    await ExpReport.findByIdAndDelete(req.params.id);
+    const report = await ExpReport.findById(id);
 
-   res.status(200).render("expReports", {
-        title: "Izveštaji za inostrano tržište",
-        path: "exp",
-        lang,
-        userName: req.session.name,
-        successMessage: 'Izveštaj je izbrisan'
+    if (!report) {
+        return next(
+            new ErrorResponse(
+                `Izveštaj sa id brojem ${id} ne postoji`,
+                400
+            )
+        );
+    }
+
+    await ExpReport.findByIdAndDelete(id);
+
+    res.status(200).json({
+        success: true,
+        data: "Izveštaj uspešno obrisan."
     });
 });

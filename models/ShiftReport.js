@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const shiftReportsSchema = new mongoose.Schema({
     smena: {
         type: String,
-        enum: ['prva', 'druga']
+        enum: ['prva', 'druga'],
+        default: 'prva'
     },
 
     pr1_0: {
