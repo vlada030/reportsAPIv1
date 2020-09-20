@@ -11,16 +11,20 @@ const sharp = require('sharp');
 const multer = require('multer');
 
 // disk storage ukoliko fajl direktno snimamo u public folder
-const multerStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, "/public/img/users");
-    },
-    filename: function (req, file, cb) {
-        const ext = file.mimetype.split("/")[1];
+// const multerStorage = multer.diskStorage({
+//     destination: (req, file, cb) => {
+//         cb(null, 'public/img/users');
+//     },
 
-        cb(null, `user-${req.user.id}-${Date.now()}.${ext}`);
-    },
-});
+//     filename: function (req, file, cb) {
+//         const ext = file.mimetype.split('/')[1];
+
+//         cb(null, `user-${req.user.id}-${Date.now()}.${ext}`);
+//     },
+// });
+
+// ukoliko koristimo sharp 
+const multerStorage = multer.memoryStorage();
 
 // filtriranje input fajla
 const multerFilter = (req, file, cb) => {
@@ -282,7 +286,7 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    Create / Update user avatar
-// @route   POST /api/v1/auth/me/avatar
+// @route   PUT /api/v1/auth/avatar
 // @access  Private
 
 exports.updateAvatar = asyncHandler(async (req, res, next) => {
@@ -290,12 +294,15 @@ exports.updateAvatar = asyncHandler(async (req, res, next) => {
     if (!req.file) {
         return next(new ErrorResponse('Niste izabrali avatar sliku', 400));
     }
+
+    //const ext = req.file.mimetype.split("/")[1];
+    const url = `public/img/users/user-${req.user.id}-${Date.now()}.jpeg`;
     
     //req.user.avatar = req.file.buffer;
+
     // dodavanje sharp modula za narmalizaciju slike resize / png i vracanje u buffer format zbog snimanja u db
-    //const buffer = await sharp(req.file.buffer).resize({width: 250, height: 250}).png().toBuffer();
-    const ext = req.file.mimetype.split("/")[1];
-    const url = `/public/img/users/user-${req.user.id}-${Date.now()}.${ext}`;
+    // sharp modula za narmalizaciju slike resize / jpeg, prihvata se kao buffer i nakon obrade snima se u fajl
+    const buffer = await sharp(req.file.buffer).resize({width: 500, height: 500}).toFormat('jpeg').jpeg({quality: 90}).toFile(url);
 
     //const user = await req.user.save();
     const user = await User.findByIdAndUpdate(req.user.id, {avatar: url}, {
@@ -332,7 +339,7 @@ exports.getAvatar = asyncHandler(async (req, res, next) => {
  }); 
 
 // @desc    Delete user avatar
-// @route   DELETE /api/v1/auth/me/avatar
+// @route   DELETE /api/v1/auth/avatar
 // @access  Private
 
 exports.deleteAvatar = asyncHandler(async (req, res, next) => {

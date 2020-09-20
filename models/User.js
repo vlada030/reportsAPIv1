@@ -38,7 +38,7 @@ const UserSchema = new mongoose.Schema({
 
     avatar: {
         type: String,
-        default: '/img/user/user-default.png'
+        default: '/img/users/user-default.png'
     },
 
     resetPasswordToken: String,
