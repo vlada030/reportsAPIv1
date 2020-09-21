@@ -1,6 +1,7 @@
 
 const crypto = require('crypto');
 const {validationResult} = require('express-validator');
+const fs = require('fs');
 
 const User = require('../models/User');
 const asyncHandler = require('../middleware/asyncHandler');
@@ -11,6 +12,7 @@ const sharp = require('sharp');
 const multer = require('multer');
 
 // disk storage ukoliko fajl direktno snimamo u public folder
+
 // const multerStorage = multer.diskStorage({
 //     destination: (req, file, cb) => {
 //         cb(null, 'public/img/users');
@@ -41,10 +43,11 @@ const multerFilter = (req, file, cb) => {
     cb(null, true);
 };
 
+
 const upload = multer({
     // kada je ovo podeseno ONDA SE NE VIDI FAJL u req.file i plus posto se ceo kod aploaduje na heroku, AWS, prilikom svakog pokretanja app ceo file sistem SE BRISE zato moraju slike da se sacuvaju u db    
     //dest: 'avatar/'
-    limits: {
+    limits:{
         fileSize: 10*1024*1024
     },
     storage: multerStorage,
@@ -53,7 +56,6 @@ const upload = multer({
 
 // middleware za upload avatar slike
 exports.uploadUserPhoto = upload.single('avatar');
-
 
 // @desc   Register User
 // @route  POST /api/v1/auth/register
@@ -296,13 +298,13 @@ exports.updateAvatar = asyncHandler(async (req, res, next) => {
     }
 
     //const ext = req.file.mimetype.split("/")[1];
-    const url = `public/img/users/user-${req.user.id}-${Date.now()}.jpeg`;
+    const url = `users/user-${req.user.id}-${Date.now()}.jpeg`;
     
     //req.user.avatar = req.file.buffer;
 
     // dodavanje sharp modula za narmalizaciju slike resize / png i vracanje u buffer format zbog snimanja u db
     // sharp modula za narmalizaciju slike resize / jpeg, prihvata se kao buffer i nakon obrade snima se u fajl
-    const buffer = await sharp(req.file.buffer).resize({width: 500, height: 500}).toFormat('jpeg').jpeg({quality: 90}).toFile(url);
+    await sharp(req.file.buffer).resize({width: 500, height: 500}).toFormat('jpeg').jpeg({quality: 90}).toFile(`public/${url}`);
 
     //const user = await req.user.save();
     const user = await User.findByIdAndUpdate(req.user.id, {avatar: url}, {
@@ -316,46 +318,43 @@ exports.updateAvatar = asyncHandler(async (req, res, next) => {
     
 }); 
 
-// @desc    Get user avatar
-// @route   GET /api/v1/users/me/avatar
+
+// @desc    Delete user avatar (reset to default)
+// @route   DELETE /api/v1/auth/avatar
 // @access  Private
 
-exports.getAvatar = asyncHandler(async (req, res, next) => {
-
-    const user = await User.findById(req.user.id).select('+avatar');
+exports.deleteAvatar = asyncHandler(async (req, res, next) => {
+    let user = await User.findById(req.user.id);
 
     if (!user) {
         return next(new ErrorResponse(`Korisnik sa trazenim id ${req.user.id} ne postoji`, 400));
     }
 
-    if (!user.avatar) {
-        return next(new ErrorResponse(`Korisnik sa trazenim id ${req.user.id} nema avatar sliku`, 400));
-    }
-    // nije bitna originalna extenzija slike bmp/jpg/jpeg/png
-    // u svakom slučaju preko sharp modula postavili smo da slika uvek bude png
-    res.set('Content-Type', 'image/png');
- 
-    res.status(200).send(user.avatar);         
- }); 
+    const removeFromPublic = req.user.avatar;
 
-// @desc    Delete user avatar
-// @route   DELETE /api/v1/auth/avatar
-// @access  Private
-
-exports.deleteAvatar = asyncHandler(async (req, res, next) => {
-        
-   req.user.avatar = void 0;
+    // vrati vrednost polja na default
+    req.user.avatar = 'users/user-default.png';
 
     //const user = await req.user.save();
-    const user = await User.findByIdAndUpdate(req.user.id, {avatar: req.user.avatar}, {
+    user = await User.findByIdAndUpdate(req.user.id, {avatar: req.user.avatar}, {
         new: true
     });
+
+    // izbriši avatar iz public foldera osim ako je default
+    if (!removeFromPublic.endsWith('.png')) {
+        await fs.unlink(`public/${removeFromPublic}`, (err) => {
+            if (err) {
+                console.log('Slika ne postoji u Public folderu.');
+            } else {
+                console.log('Slika uspešno obrisana iz Public foldera.');
+            }
+       })
+    }
 
     res.status(200).json({
         success: true,
         data: user
-    });    
-    
+    });       
 }); 
 
 // @desc    Log user out & clear cookie 

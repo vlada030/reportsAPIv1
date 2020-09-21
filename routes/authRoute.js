@@ -1,7 +1,7 @@
 const express = require('express');
 const { check, body} = require('express-validator');
 
-const {register, login, getMe, deleteMe, logout, logoutAll, updateDetails, updatePassword, forgotPassword, updateAvatar, deleteAvatar, resetPassword, uploadUserPhoto, getAvatar} = require('../controllers/authController');
+const {register, login, getMe, deleteMe, logout, logoutAll, updateDetails, updatePassword, forgotPassword, updateAvatar, deleteAvatar, resetPassword, uploadUserPhoto} = require('../controllers/authController');
 
 const router = express.Router();
 
@@ -40,7 +40,10 @@ router
     );
 router.route("/login").post(login);
 router.route("/me").get(protect, getMe).delete(protect, deleteMe);
-router.route("/avatar").put(protect, uploadUserPhoto, updateAvatar)
+router
+    .route("/avatar")
+    .put(protect, uploadUserPhoto, updateAvatar)
+    .delete(protect, deleteAvatar);
 router.post("/logout", protect, logout);
 router.post("/logoutAll", protect, logoutAll);
 router.put(
