@@ -266,6 +266,21 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 // @access  Public
 
 exports.resetPassword = asyncHandler(async (req, res, next) => {
+    // validacija input password
+    const  errors = validationResult(req);
+    const errorsString = errors.array().reduce((acc, val) => {
+        acc += `${val.msg}; `;
+        return acc
+    }, '');
+        
+    // validacija preko express-validatora
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            error: errorsString
+        })
+    }
+
     const resetPasswordToken = crypto.createHash('sha256').update(req.params.resettoken).digest('hex');
 
     const user = await User.findOne({
@@ -274,7 +289,7 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
     });
 
     if (!user) {
-        return next(new ErrorResponse('Neispravan token', 400));
+        return next(new ErrorResponse('Neispravan token. Obratite pažnju da imate 10 minuta od momenta pristizanja emaila da resetujete zaboravljenu šifru.', 400));
     }
     // da bi ovo radilo ovako MORA da se UPOTREBI findOne jer find vraca Array 
     user.password = req.body.password;
@@ -342,7 +357,7 @@ exports.deleteAvatar = asyncHandler(async (req, res, next) => {
 
     // izbriši avatar iz public foldera osim ako je default
     if (!removeFromPublic.endsWith('.png')) {
-        await fs.unlink(`public/${removeFromPublic}`, (err) => {
+        fs.unlink(`public/${removeFromPublic}`, (err) => {
             if (err) {
                 console.log('Slika ne postoji u Public folderu.');
             } else {
@@ -427,6 +442,8 @@ exports.deleteMe = asyncHandler(async (req, res, next) => {
     });
 
 }); 
+
+
 
 // kreiranje tokena, cookie i generisanje responsa
 // tokenu na FE se može pristupiti preko local Storage ili preko cookie što je sigurnije 

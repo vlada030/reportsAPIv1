@@ -14,7 +14,13 @@ const sendWelcomeEmail = (name, email) => {
             to: email,
             from: 'vladimir.nikodijevic@tfkable.com',
             subject: 'Prijava na platformu Reports',
-            text: `Postovani ${name}, Dobrodošli na platformu Fabrike Kablova Zaječar za pravljenje Izveštaja.`
+            html: `<p>Poštovani ${name},</p>
+                    <br>
+                    <p> Dobrodošli na platformu Fabrike Kablova Zaječar za pravljenje Izveštaja.</p>
+                    <br>
+                    <p>Srdačan pozdrav!</p>
+                    <p>Reports Team</p>
+                    `
         })
         console.log(`Uspešno poslata poruka na adresu ${email}`.green);
 
@@ -34,7 +40,8 @@ const sendCancelEmail = (name, email) => {
                     <br>
                     <p>Žao nam je što se odjavljujete sa platforme Fabrike Kablova Zaječar.</p>
                     <br>
-                    <p>Srdačan pozdrav!</p>`
+                    <p>Srdačan pozdrav!</p>
+                    <p>Reports Team</p>`
         })
 
         console.log(`Uspešno poslata poruka na adresu ${email}`.green);        
@@ -49,7 +56,7 @@ const sendResetPasswordEmail = async (name, email, link) => {
         to: email,
         from: 'vladimir.nikodijevic@tfkable.com',
         subject: 'Link za resetovanje sifre',
-        text: `Poštovani ${name}, U tekstu ispod, nalazi se link za reset zaboravljene šifre koji ste zahtevali. Potreban je PUT request.
+        text: `Poštovani ${name}, U tekstu ispod, nalazi se link za reset zaboravljene šifre koji ste zahtevali. Potreban je PUT request. Link je validan u narednih 10 minuta!
         ${link}`
     })
 
