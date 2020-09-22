@@ -70,15 +70,15 @@ router.put("/updatepassword",
         "Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera")
             .isLength({ min: 7, max: 15 })
     ], updatePassword);
+
 router.post("/resetpassword", forgotPassword);
 router.put(
     "/resetpassword/:resettoken",
-    protect,
     [
         body(
             "password",
             "Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera"
-        ).isLength({ min: 7, max: 15 }),
+        ).isLength({ min: 7, max: 15 })
     ],
     resetPassword
 );

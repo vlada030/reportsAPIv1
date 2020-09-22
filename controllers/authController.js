@@ -15,7 +15,7 @@ const multer = require('multer');
 
 // const multerStorage = multer.diskStorage({
 //     destination: (req, file, cb) => {
-//         cb(null, 'public/img/users');
+//         cb(null, 'public/img/user');
 //     },
 
 //     filename: function (req, file, cb) {
@@ -313,7 +313,7 @@ exports.updateAvatar = asyncHandler(async (req, res, next) => {
     }
 
     //const ext = req.file.mimetype.split("/")[1];
-    const url = `users/user-${req.user.id}-${Date.now()}.jpeg`;
+    const url = `user/user-${req.user.id}-${Date.now()}.jpeg`;
     
     //req.user.avatar = req.file.buffer;
 
@@ -348,7 +348,7 @@ exports.deleteAvatar = asyncHandler(async (req, res, next) => {
     const removeFromPublic = req.user.avatar;
 
     // vrati vrednost polja na default
-    req.user.avatar = 'users/user-default.png';
+    req.user.avatar = 'user/user-default.png';
 
     //const user = await req.user.save();
     user = await User.findByIdAndUpdate(req.user.id, {avatar: req.user.avatar}, {
