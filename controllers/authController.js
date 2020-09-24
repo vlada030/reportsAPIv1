@@ -331,7 +331,7 @@ exports.updateAvatar = asyncHandler(async (req, res, next) => {
 
     // izbriši avatar iz public foldera osim ako je default
     if (!removeFromPublic.endsWith('.png')) {
-        fs.unlink(`public/img/${removeFromPublic}`, (err) => {
+        fs.unlink(`public/${removeFromPublic}`, (err) => {
             if (err) {
                 console.log('Slika ne postoji u Public folderu.');
             } else {
@@ -358,7 +358,7 @@ exports.deleteAvatar = asyncHandler(async (req, res, next) => {
     if (!user) {
         return next(new ErrorResponse(`Korisnik sa trazenim id ${req.user.id} ne postoji`, 400));
     }
-    
+
     // zapamti ime slike koje treba da se izbrise nakon update
     const removeFromPublic = req.user.avatar;
 
