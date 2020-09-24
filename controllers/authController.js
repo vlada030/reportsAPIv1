@@ -312,6 +312,9 @@ exports.updateAvatar = asyncHandler(async (req, res, next) => {
         return next(new ErrorResponse('Niste izabrali avatar sliku', 400));
     }
 
+    // zapamti ime slike koje treba da se izbrise nakon update
+    const removeFromPublic = req.user.avatar;
+
     //const ext = req.file.mimetype.split("/")[1];
     const url = `user/user-${req.user.id}-${Date.now()}.jpeg`;
     
@@ -325,6 +328,17 @@ exports.updateAvatar = asyncHandler(async (req, res, next) => {
     const user = await User.findByIdAndUpdate(req.user.id, {avatar: url}, {
         new: true
     });
+
+    // izbriši avatar iz public foldera osim ako je default
+    if (!removeFromPublic.endsWith('.png')) {
+        fs.unlink(`public/img/${removeFromPublic}`, (err) => {
+            if (err) {
+                console.log('Slika ne postoji u Public folderu.');
+            } else {
+                console.log('Slika uspešno obrisana iz Public foldera.');
+            }
+       })
+    }
 
     res.status(200).json({
         success: true,
@@ -344,7 +358,8 @@ exports.deleteAvatar = asyncHandler(async (req, res, next) => {
     if (!user) {
         return next(new ErrorResponse(`Korisnik sa trazenim id ${req.user.id} ne postoji`, 400));
     }
-
+    
+    // zapamti ime slike koje treba da se izbrise nakon update
     const removeFromPublic = req.user.avatar;
 
     // vrati vrednost polja na default
