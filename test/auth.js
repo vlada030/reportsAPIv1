@@ -8,29 +8,6 @@ const User = require('../models/User');
 const {protect, authorize} = require('../middleware/auth');
 
 describe('check for user identification middleware', function() {
-    // it('check for invalid token sent via requests header authorization', function() {
-    //     let req = {
-    //         headers: {
-    //             authorization: 'Bearer '
-    //         }
-    //     };
-
-    //     let res = {};
-
-    //     function next (err) {
-    //         const error = err;
-    //         res.statusCode = error.statusCode;
-    //         res.message = error.message;
-    //         return res;
-    //     };
-        
-    //     protect(req, {}, next).then(result => {
-    //         //console.log(result);
-    //         expect(res.statusCode).to.be.equal(401);
-    //         expect(res.message).to.be.string('Korisnik nema autorizaciju da pristupi ovoj ruti.');
-    //     });
-    // });
-
     before(function(done) {
         const options = { 
             useNewUrlParser: true,
@@ -54,29 +31,32 @@ describe('check for user identification middleware', function() {
         })
     })  
 
-    // it('check for invalid token sent via cookie or header', async function() {
-    //     let req = {
-    //         headers: {},
-    //         cookies: {}
-    //     };
+    it('check for invalid token sent via cookie or header', function(done) {
+        let req = {
+            headers: {},
+            cookies: {}
+        };
 
-    //     let res = {};
+        let res = {};
 
-    //     function next (err) {
-    //         const error = err;
-    //         res.statusCode = error.statusCode;
-    //         res.message = error.message;
-    //         return res;
-    //     };
+        function next (err) {
+            const error = err;
+            if (error) {
+                res.statusCode = error.statusCode;
+                res.message = error.message;
+            }
+            return res;
+        };
 
-    //     const result = await protect(req, {}, next);
-    //     //console.log(result);
-    //     expect(result.statusCode).to.be.equal(401);
-    //     expect(result.message).to.be.string('Korisnik nema autorizaciju da pristupi ovoj ruti.');
-        
-    // })
+            protect(req, {}, next).then(result => {
+            //console.log(result);
+            expect(res.statusCode).to.be.equal(401);
+            expect(res.message).to.be.string('Korisnik nema autorizaciju da pristupi ovoj ruti.');
+            done();
+        });
+    });
 
-    it('pull valid user from database', function(done) {
+    it('pull user from database after passing valid token', function(done) {
         let req = {
             headers: {},
             cookies: {
@@ -86,19 +66,65 @@ describe('check for user identification middleware', function() {
         };
 
         sinon.stub(jwt, 'verify');
-        jwt.verify.returns('5f958d76209e5b2b6848d9e4');
+        jwt.verify.returns({id: '5f958d76209e5b2b6848d9e4'});
         protect(req, {}, () => {}).then(result => {
-            console.log(req);
-            expect(req.decode).to.be.equal('5f958d76209e5b2b6848d9e4');
+            //console.log(req);
+            expect(req.user.name).to.be.equal('testtest');
             done();
+            jwt.verify.restore();
         })
-        // console.log(req);
-        
-        // expect(req.user.name).to.be.equal('testtest');
-        // done();
-        jwt.verify.restore();
+    });
 
-    })
+    // available roles = ['admin', 'qc', 'sales']
+    it('authorization check for specific user role - authorized user', function(done) {
+        let req = {
+            user: {
+                role: 'admin'
+            }
+        };
+
+        let res = {};
+
+        function next (err) {
+            const error = err;
+            if (error) {
+                res.statusCode = error.statusCode;
+                res.message = error.message;
+            }
+            return res;
+        };
+
+        const role = authorize('admin', 'qc');
+        role(req, res, next);
+        //console.log(res);
+        expect(res).to.be.empty;
+        done();
+    });
+
+    it('authorization check for specific user role - unauthorized user', function(done) {
+        let req = {
+            user: {
+                role: 'sales'
+            }
+        };
+
+        let res = {};
+
+        function next (err) {
+            const error = err;
+            if (error) {
+                res.statusCode = error.statusCode;
+                res.message = error.message;
+            }
+            return res;
+        };
+
+        const role = authorize('admin', 'qc');
+        role(req, res, next);
+        //console.log(res);
+        expect(res.statusCode).to.be.equal(403);
+        done();
+    });
 
     after(function(done) {
         User.deleteMany({})
