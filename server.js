@@ -101,7 +101,9 @@ const server = app.listen(PORT, () => console.log(`Server is running in ${proces
 // pogresna sifra - promise tj node vraca gresku unhandled rejection
 // u slucaju da ne mozemo da ostvarimo konekciju,
 // ugasi server i izadji iz node aplikacije (process) sa greskom   
-process.on('unhandledRejection', (err, promise) =>{
+process.on('unhandledRejection', (err, promise) => {
     console.log(`Error: ${err.message}`.red);
     server.close(() => process.exit(1));
 });
+
+module.exports = server;
