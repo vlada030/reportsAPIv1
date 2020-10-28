@@ -1,3 +1,4 @@
+const log = require('why-is-node-running');
 const express = require('express');
 const dotenv = require('dotenv');
 const path = require('path');
@@ -31,6 +32,15 @@ dotenv.config({
 
 // pozivanje konekcije nakon .env, a pre app
 connectDB();
+// mongoose.connect(process.env.MONGO_URI_PROD_DEV, {
+//     // ovo se ubacuje da nam nebi u konzoli izbacivalo upozorenja
+//     useNewUrlParser: true,
+//     useCreateIndex: true,
+//     useFindAndModify: false,
+//     useUnifiedTopology: true
+// });
+// let db = mongoose.connection;
+// db.on('connected', console.error.bind(console, 'CONNECTED'));
 
 // kreiranje aplikacije
 const app = express();
@@ -51,6 +61,8 @@ app.use(cookieParser());
 // pozivanje morgan loggera
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
+} else if (process.env.NODE_ENV === 'test') {
+    // app.use(morgan('combined'));
 }
 
 // Mongo sanitize - No-SQL injection
@@ -105,5 +117,6 @@ process.on('unhandledRejection', (err, promise) => {
     console.log(`Error: ${err.message}`.red);
     server.close(() => process.exit(1));
 });
-
-module.exports = server;
+// log();
+// app (ili const server) se exportuje u slucaju testiranja sa chai-http koji trazi pristup .listen metodu, generalno ne smeta funkcionisanju servera
+module.exports = app;

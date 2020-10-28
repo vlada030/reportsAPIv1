@@ -2,96 +2,111 @@
 // https://scotch.io/tutorials/how-to-test-nodejs-apps-using-mocha-chai-and-sinonjs
 
 
-// const chai = require('chai');
-// const chaihttp = require('chai-http');
-// const expect = chai.expect;
-
-// const server = require('../server');
-
-// chai.use(chaihttp);
-
-// describe('Authentication controller testing', function() {
-//     describe('# User Registration', function() {
-//         it('check if user name is empty', async function() {
-//             let res = await chai.request(server)
-//             .post('/api/v1/auth/register')
-//             .send({'name': '', 'email': 'test@mail.com', 'password': '12345678'});
-            
-//             expect(res).to.have.status(401);  
-                                                     
-//         })
-//     })
-// })  
-
 const chai = require('chai');
 const chaihttp = require('chai-http');
-const sinon = require('sinon');
+const expect = chai.expect;
 
-const mongoose = require('mongoose');
-const User = require('../models/User');
 const server = require('../server');
 
 chai.use(chaihttp);
 
 describe('Authentication controller testing', function() {
     describe('# User Registration', function() {
-        // before(function(done) {
-        //     const options = { 
-        //         useNewUrlParser: true,
-        //         useCreateIndex: true,
-        //         useFindAndModify: false,
-        //         useUnifiedTopology: true 
-        //     };
-        //     mongoose.connect('mongodb+srv://test:test123@cluster0-jqd2k.mongodb.net/test-reports?retryWrites=true&w=majority', options)
-        //     // .then(result => {
-        //     //     const user = new User({
-        //     //         name: 'testtest',
-        //     //         email: 'test@mail.com',
-        //     //         password: '12345678',
-        //     //         _id: '5f958d76209e5b2b6848d9e4'
-        //     //     });
-                
-        //     //     return user.save();
-        //     // })
-        //     .then(() => {
-        //         done();
-        //     })
-        // })   
-        before(async function() {
-            const options = { 
-                useNewUrlParser: true,
-                useCreateIndex: true,
-                useFindAndModify: false,
-                useUnifiedTopology: true 
-            };
-            await mongoose.connect('mongodb+srv://test:test123@cluster0-jqd2k.mongodb.net/test-reports?retryWrites=true&w=majority', options);
-            // .then(result => {
-            //     const user = new User({
-            //         name: 'testtest',
-            //         email: 'test@mail.com',
-            //         password: '12345678',
-            //         _id: '5f958d76209e5b2b6848d9e4'
-            //     });    
-            //     return user.save();
-            // })
-        })   
-
-        it.only('check if user name is empty', async function() {
-            let res = await chai.request('http://localhost:5000')
+        it('check if user name field is empty & return status code 401', function(done) {
+            chai.request(server)
             .post('/api/v1/auth/register')
-            .send({'name': '', 'email': 'test@mail.com', 'password': '12345678'})
-            console.log(res.text);
-            chai.expect(res).to.have.status(401);    
-        })
+            .send({'name': '', 'email': 'test@mail.com', 'password': '12345678', 'confirmPassword': '12345678'})
+            .end(function(err, res) {
+                const obj = JSON.parse(res.text);
+                //console.log(obj.error);
+                expect(res).to.have.status(401);
+                expect(obj.error).to.have.string('Unesite korisničko ime');
+                done();
+            });                                                      
+        });
 
-        // after(function(done) {
-        //     User.deleteMany({})
-        //     .then(() => mongoose.disconnect())
-        //     .then(() => done());
-        // })
+        it('check if user name is larger than 15 characters & return status code 401', async function() {
+            let res = await chai.request(server)
+            .post('/api/v1/auth/register')
+            .send({'name': 'testtesttesttest', 'email': 'test@mail.com', 'password': '12345678', 'confirmPassword': '12345678'});
 
-        after(async function() {
-            await mongoose.disconnect();            
-        })
+            const obj = JSON.parse(res.text);
+            expect(res).to.have.status(401);
+            expect(obj.error).to.have.string('Korisničko ime može sadržati najviše 15 karaktera');
+
+                                                                 
+        });
+
+        it('check if email field is empty & return status code 401', function(done) {
+            chai.request(server)
+            .post('/api/v1/auth/register')
+            .send({'name': 'Test', 'email': '', 'password': '12345678', 'confirmPassword': '12345678'})
+            .end(function(err, res) {
+                const obj = JSON.parse(res.text);
+                expect(res).to.have.status(401);
+                expect(obj.error).to.have.string('Unesite ispravnu email adresu');
+                done();
+            });                                                      
+        });
+
+        it('check if email is invalid & return status code 401', function(done) {
+            chai.request(server)
+            .post('/api/v1/auth/register')
+            .send({'name': 'Test', 'email': 'test.com', 'password': '12345678', 'confirmPassword': '12345678'})
+            .end(function(err, res) {
+                const obj = JSON.parse(res.text);
+                expect(res).to.have.status(401);
+                expect(obj.error).to.have.string('Unesite ispravnu email adresu');
+                done();
+            });                                                      
+        });
+
+        it('check if password has less than 7 characters & return status code 401', function(done) {
+            chai.request(server)
+            .post('/api/v1/auth/register')
+            .send({'name': 'Test', 'email': 'test@mail.com', 'password': '123', 'confirmPassword': '12345678'})
+            .end(function(err, res) {
+                const obj = JSON.parse(res.text);
+                expect(res).to.have.status(401);
+                expect(obj.error).to.have.string('Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera');
+                done();
+            });                                                      
+        });
+
+        it('check if password has more than 15 characters & return status code 401', function(done) {
+            chai.request(server)
+            .post('/api/v1/auth/register')
+            .send({'name': 'Test', 'email': 'test@mail.com', 'password': '12345678912345678', 'confirmPassword': '12345678'})
+            .end(function(err, res) {
+                const obj = JSON.parse(res.text);
+                expect(res).to.have.status(401);
+                expect(obj.error).to.have.string('Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera');
+                done();
+            });                                                      
+        });
+
+        it('check if password has non Alphanumeric characters & return status code 401', function(done) {
+            chai.request(server)
+            .post('/api/v1/auth/register')
+            .send({'name': 'Test', 'email': 'test@mail.com', 'password': '12345678.!?,', 'confirmPassword': '12345678'})
+            .end(function(err, res) {
+                const obj = JSON.parse(res.text);
+                expect(res).to.have.status(401);
+                expect(obj.error).to.have.string('Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera');
+                done();
+            });                                                      
+        });
+
+        it('check if repeteaded password doesnt match password & return status code 401', function(done) {
+            chai.request(server)
+            .post('/api/v1/auth/register')
+            .send({'name': 'Test', 'email': 'test@mail.com', 'password': '12345678', 'confirmPassword': '123456789'})
+            .end(function(err, res) {
+                const obj = JSON.parse(res.text);
+                expect(res).to.have.status(401);
+                expect(obj.error).to.have.string('Šifre se ne podudaraju, ponovite unos');
+                done();
+            });                                                      
+        });
     })
-})
+}) 

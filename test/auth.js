@@ -5,7 +5,13 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const User = require('../models/User');
 
+const dotenv = require('dotenv');
+
 const {protect, authorize} = require('../middleware/auth');
+
+dotenv.config({
+    path: "./config/config.env"
+});
 
 describe('check for user identification middleware', function() {
     before(function(done) {
@@ -15,7 +21,7 @@ describe('check for user identification middleware', function() {
             useFindAndModify: false,
             useUnifiedTopology: true 
         };
-        mongoose.connect('mongodb+srv://test:test123@cluster0-jqd2k.mongodb.net/test-reports?retryWrites=true&w=majority', options)
+        mongoose.connect(process.env.MONGO_URI_TEST, options)
         .then(result => {
             const user = new User({
                 name: 'testtest',
@@ -126,9 +132,7 @@ describe('check for user identification middleware', function() {
         done();
     });
 
-    after(function(done) {
-        User.deleteMany({})
-        .then(() => mongoose.disconnect())
-        .then(() => done());
-    })
+    after(async function() {
+        await mongoose.disconnect();            
+    });
 })
