@@ -13,6 +13,8 @@ const rateLimit = require('express-rate-limit');
 const hpp = require('hpp');
 const cors = require('cors');
 
+const mongoose = require('mongoose');
+
 //import custom error handlera
 const errorHandler = require('./middleware/errorHandler');
 
@@ -24,6 +26,7 @@ const reportsRoute = require('./routes/reportsRoute');
 const productsRoute = require('./routes/productsRoute');
 const authRoute = require('./routes/authRoute');
 const usersRoute = require('./routes/usersRoute');
+const { Mongoose } = require('mongoose');
 
 // ENV fajl nije u root folderu zato mora da se navede putanja
 dotenv.config({
@@ -117,6 +120,27 @@ process.on('unhandledRejection', (err, promise) => {
     console.log(`Error: ${err.message}`.red);
     server.close(() => process.exit(1));
 });
+
+function stop() {
+    server.close();
+    
+  }
+
+// server.on('close', function() {
+//     console.log(' Stopping ...');
+//     mongoose.connection.close();
+//   });
+
+// process.on('SIGTERM', () => {
+//     console.info('SIGTERM signal received.');
+//     console.log('Closing http server.');
+//     server.close(() => {
+//       console.log('Http server closed.');
+//       conn.disconnect();
+
+//     });
+//   });
 // log();
 // app (ili const server) se exportuje u slucaju testiranja sa chai-http koji trazi pristup .listen metodu, generalno ne smeta funkcionisanju servera
 module.exports = app;
+module.exports.stop = stop;
