@@ -12,7 +12,7 @@ const connectDB = async () => {
         useUnifiedTopology: true
     });
 
-    if (process.env.NODE_ENV !== 'testtttt') {
+    if (process.env.NODE_ENV !== 'test') {
         console.log(`MongoDB Connected: ${conn.connection.host}`.brightBlue);
     }
 }

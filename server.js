@@ -26,7 +26,6 @@ const reportsRoute = require('./routes/reportsRoute');
 const productsRoute = require('./routes/productsRoute');
 const authRoute = require('./routes/authRoute');
 const usersRoute = require('./routes/usersRoute');
-const { Mongoose } = require('mongoose');
 
 // ENV fajl nije u root folderu zato mora da se navede putanja
 dotenv.config({
@@ -121,10 +120,10 @@ process.on('unhandledRejection', (err, promise) => {
     server.close(() => process.exit(1));
 });
 
-function stop() {
-    server.close();
+// function stop() {
+//     server.close();
     
-  }
+//   }
 
 // server.on('close', function() {
 //     console.log(' Stopping ...');
@@ -142,5 +141,5 @@ function stop() {
 //   });
 // log();
 // app (ili const server) se exportuje u slucaju testiranja sa chai-http koji trazi pristup .listen metodu, generalno ne smeta funkcionisanju servera
-module.exports = app;
-module.exports.stop = stop;
+module.exports = server;
+// module.exports.stop = stop;
