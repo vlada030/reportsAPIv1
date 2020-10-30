@@ -14,19 +14,23 @@ dotenv.config({
 });
 
 describe("check for user identification middleware", function () {
+
+    const options = {
+        useNewUrlParser: true,
+        useCreateIndex: true,
+        useFindAndModify: false,
+        useUnifiedTopology: true,
+    };
+  
     before(function (done) {
-        const options = {
-            useNewUrlParser: true,
-            useCreateIndex: true,
-            useFindAndModify: false,
-            useUnifiedTopology: true,
-        };
         mongoose
             .connect(process.env.MONGO_URI_TEST, options)
             .then((result) => {
                 return User.deleteMany({});
             })
             .then(() => {
+                mongoose.connection.close();
+                console.log('zatvaram');
                 done();
             })
             .catch((err) => {
@@ -34,7 +38,6 @@ describe("check for user identification middleware", function () {
             });
     });
                 
-  
     it("check for invalid token sent via cookie or header", function (done) {
         let req = {
             headers: {},
@@ -73,7 +76,7 @@ describe("check for user identification middleware", function () {
 
         sinon.stub(jwt, "verify");
         jwt.verify.returns({ id: "5f958d76209e5b2b6848d9e4" });
-
+        
         const user = new User({
             name: "testtest",
             email: "test@mail.com",
@@ -81,17 +84,25 @@ describe("check for user identification middleware", function () {
             _id: "5f958d76209e5b2b6848d9e4",
         });
 
-        user.save()
-        .then((result) => {
-            return protect(req, {}, () => {})
-        })
-        .then((result) => {
-            //console.log(req);
-            expect(req.user.name).to.be.equal("testtestt");
-            done();
-            jwt.verify.restore();
-        });
-
+        mongoose
+            .connect(process.env.MONGO_URI_TEST, options)
+            .then(() => {
+                console.log('IT KONEKCIJA OTVORENA');
+                return user.save();
+            })
+            .then((result) => {
+                return protect(req, {}, () => {})
+            })
+            .then((result) => {
+                console.log('IT ZATVORENA KONEKCIJA');
+                return mongoose.connection.close();
+            })
+            .then((result) => {
+                //console.log(req);
+                expect(req.user.name).to.be.equal("testtestt");
+                done();
+                jwt.verify.restore();
+            });
     });
         
     // available roles = ['admin', 'qc', 'sales']
@@ -141,11 +152,11 @@ describe("check for user identification middleware", function () {
         const role = authorize("admin", "qc");
         role(req, res, next);
         //console.log(res);
-        expect(res.statusCode).to.be.equal(403);
+        expect(res.statusCode).to.be.equal(40);
         done();
     });
 
-    // after(function (done) {
+    // afterEach(function (done) {
     //     User.deleteMany({})
     //         .then(() => {
     //             return mongoose.connection.close();
@@ -157,7 +168,8 @@ describe("check for user identification middleware", function () {
 
     // OBAVEZNO afterEach jer konekcija se otvara u BEFORE i ukoliko neki test fails nece se preci na ostale testove (i fajlove sa testovima jer ostaje konekcija otvorena koja blokira dalje izvsenje)
     afterEach(async function() {
-        //await User.deleteMany({})
+        // await User.deleteMany({})
+        console.log('Zatvaram konekciju');
         await mongoose.connection.close();            
     });
 });

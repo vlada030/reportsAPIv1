@@ -1,4 +1,3 @@
-const log = require('why-is-node-running');
 const express = require('express');
 const dotenv = require('dotenv');
 const path = require('path');
@@ -139,7 +138,6 @@ process.on('unhandledRejection', (err, promise) => {
 
 //     });
 //   });
-// log();
-// app (ili const server) se exportuje u slucaju testiranja sa chai-http koji trazi pristup .listen metodu, generalno ne smeta funkcionisanju servera
+// const server (nece app kad se exportuje) se exportuje u slucaju testiranja sa chai-http koji trazi pristup .listen metodu, generalno ne smeta funkcionisanju servera
 module.exports = server;
 // module.exports.stop = stop;
