@@ -41,7 +41,7 @@ describe("Authentication controller testing", function () {
             const obj = JSON.parse(res.text);
             expect(res).to.have.status(401);
             expect(obj.error).to.have.string(
-                "Korisničko ime može sadržati najviše 15 karakteraa"
+                "Korisničko ime može sadržati najviše 15 karaktera"
             );
         });
 

@@ -25,7 +25,6 @@ exports.protect = asyncHandler(async (req, res, next) => {
         const decode = jwt.verify(token, process.env.JWT_SECRET);
         // veoma prakticno da se ovako izvede jer nadalje request sadrzi usera
         req.user = await User.findById(decode.id);
-
         next();
     } catch (err) {
             return next(new errorResponse('Korisnik nema autorizaciju da pristupi ovoj ruti', 401));
