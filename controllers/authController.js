@@ -86,7 +86,7 @@ exports.register = asyncHandler(async (req, res, next) => {
         // return res.redirect('/api/v1/auth/register');
         return res.status(422).json({
             success: false,
-            data: 'Korisnik sa unetim e-mailom postoji'
+            error: 'Korisnik sa unetim e-mailom postoji'
         });
     }
 
