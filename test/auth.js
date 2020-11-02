@@ -16,6 +16,29 @@ dotenv.config({
 describe("check for user identification middleware", function () {
 
     // u before se radi cleanup 
+    // before(function (done) {
+
+    //     const options = {
+    //         useNewUrlParser: true,
+    //         useCreateIndex: true,
+    //         useFindAndModify: false,
+    //         useUnifiedTopology: true,
+    //     };
+    //     // otvaram konekciju da bi je u after zatvorio
+    //     mongoose
+    //         .connect(process.env.MONGO_URI_TEST, options)
+    //         .then((result) => {
+    //             return User.deleteMany({});
+    //         })
+    //         .then(() => {
+    //             // mongoose.connection.close();
+    //             // console.log('zatvaram');
+    //             done();
+    //         })
+    //         .catch((err) => {
+    //             done();
+    //         });
+    // });
     before(function (done) {
 
         const options = {
@@ -24,15 +47,10 @@ describe("check for user identification middleware", function () {
             useFindAndModify: false,
             useUnifiedTopology: true,
         };
-        // otvaram konekciju da bi je u after zatvorio
-        mongoose
-            .connect(process.env.MONGO_URI_TEST, options)
-            .then((result) => {
-                return User.deleteMany({});
-            })
+        // Ne treba konekcija da se otvara jer sledeci async test fajl (ukoliko postoji) nece da radi (izbacuje promise gresku)
+        
+            User.deleteMany({})
             .then(() => {
-                // mongoose.connection.close();
-                // console.log('zatvaram');
                 done();
             })
             .catch((err) => {
@@ -142,6 +160,8 @@ describe("check for user identification middleware", function () {
         done();
     });
 
+    // zatvaranje konekcije, cleanup je prebacen u before
+    // KONEKCIJA SE ZATVARA SAMO U POSLEDNJEM ASYNC INDIVIDUALNOM FAJLU DA BI RADIO TERMINAL STACK
     // afterEach(function (done) {
     //     User.deleteMany({})
     //         .then(() => {
@@ -151,10 +171,4 @@ describe("check for user identification middleware", function () {
     //             done();
     //         });
     // });
-
-    // zatvaranje konekcije, cleanup je prebacen u before
-    after(async function() {
-        // await User.deleteMany({})
-        await mongoose.disconnect();            
-    });
 });

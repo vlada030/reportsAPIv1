@@ -9,9 +9,9 @@ chai.use(chaihttp);
 
 describe("Authentication controller testing", function () {
     describe("# User Registration", function () {
-        // beforeEach(function(done) {
-        //     User.remove({}).then(res => {console.log('obrisan');done();}).catch(err => {console.log('nije'); done();});
-        // });
+        beforeEach(async function() {
+            await User.deleteMany({});
+        });
 
         it("check if user name field is empty & return status code 401", function (done) {
             chai.request(server)
@@ -193,33 +193,31 @@ describe("Authentication controller testing", function () {
             });
         });
 
-        it("##2 check if provided e-mail address already exists & return status code 422", function (done) {
+        it("##2 check if provided e-mail address already exists & return status code 422", async function () {
             this.timeout(6000);
             let user = new User({
                 name: "Test",
                 email: "test@mail.com",
                 password: "1234567",
-                confirmPassword: "1234567"
+                confirmPassword: "1234567",
             });
-            user.save((err, response) => {
-                chai.request(server)
-                    .post("/api/v1/auth/register")
-                    .send({
-                        name: "Test",
-                        email: "test@mail.com",
-                        password: "1234567",
-                        confirmPassword: "1234567"
-                    })
-                    .end(function (err, res) {
-                        //console.log(res);
-                        const obj = JSON.parse(res.text);
-                        expect(res).to.have.status(422);
-                        expect(obj.error).to.have.string(
-                            "Korisnik sa unetim e-mailom postoji"
-                        );
-                        done();
-                    });
-            });
+            await user.save();
+            const result = await chai
+                .request(server)
+                .post("/api/v1/auth/register")
+                .send({
+                    name: "Test",
+                    email: "test@mail.com",
+                    password: "1234567",
+                    confirmPassword: "1234567",
+                });
+
+            //console.log(result);
+            const obj = JSON.parse(result.text);
+            expect(result).to.have.status(422);
+            expect(obj.error).to.have.string(
+                "Korisnik sa unetim e-mailom postoji"
+            );
         });
 
         after((done) => {
