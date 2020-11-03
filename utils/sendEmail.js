@@ -22,7 +22,10 @@ const sendWelcomeEmail = (name, email) => {
                     <p>Reports Team</p>
                     `
         })
-        console.log(`Uspešno poslata poruka na adresu ${email}`.green);
+
+        if (process.env.NODE_ENV !== 'test') {
+            console.log(`Uspešno poslata poruka na adresu ${email}`.green);
+        }
 
         
     } catch (error) {
