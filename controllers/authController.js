@@ -198,6 +198,20 @@ exports.updateDetails = asyncHandler(async (req, res, next) => {
 // @access  Private
 
 exports.updatePassword = asyncHandler(async (req, res, next) => {
+
+    const  errors = validationResult(req);
+    const errorsString = errors.array().reduce((acc, val) => {
+        acc += `${val.msg}; `;
+        return acc
+    }, '');
+        
+    // validacija preko express-validatora
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            error: errorsString
+        })
+    }
         
     const user = await User.findById(req.user.id).select('+password');
 

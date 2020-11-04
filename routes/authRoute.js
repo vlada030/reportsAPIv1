@@ -52,8 +52,8 @@ router.put(
     [
         body("name")
             .optional()
-            .isLength({ max: 15 })
-            .withMessage("Korisničko ime može sadržati najviše 15 karaktera")
+            .isLength({ min: 1, max: 15 })
+            .withMessage("Korisničko ime može sadržati najviše 15 karaktera, a najmanje jedan.")
             .trim(),
         check("email")
             .optional()
@@ -66,7 +66,7 @@ router.put(
 router.put("/updatepassword", 
     protect,
     [
-        body("password",
+        body("newPassword",
         "Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera")
             .isLength({ min: 7, max: 15 })
     ], updatePassword);
