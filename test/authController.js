@@ -610,6 +610,35 @@ describe("Authentication controller testing", function () {
             //console.log(resp);
             expect(resp).to.have.status(400);
             expect(resp.body).to.be.deep.equal({success: false, error: 'Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera; '});
+        })   
+
+        it.only('check endpoint', async function() {
+            this.timeout(6000);
+            // pošaji reset password token i snimi ga u bazu 
+            let resp = await chai
+                .request(server)
+                .post("/api/v1/auth/resetpassword")
+                .send({email: 'test@mail.com'});
+            // iscupaj iz baze taj token
+            const user = await User.findOne({email: 'test@mail.com'});
+            const token = user.resetPasswordToken;
+
+            // nakon promene šifre, endpoint šalje novi token
+            const lastToken = user.tokens[user.tokens.length - 1].token;
+
+            resp = await chai
+                .request(server)
+                .put(`/api/v1/auth/resetpassword/${token}`)
+                .send({password: 'someNewPass'});
+
+            console.log(resp);
+            expect(resp).to.have.property("statusCode", 400);
+            expect(resp.body).to.have.property("success", true);
+            expect(resp.body)
+                .to.have.property("token")
+                .that.is.a("string")
+                .and.have.length.above(10);
+            expect(resp.body.token).to.not.equal(lastToken); 
         })         
 
         after((done) => {
