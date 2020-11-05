@@ -3,6 +3,7 @@ const chaihttp = require("chai-http");
 const expect = chai.expect;
 
 const mongoose = require("mongoose");
+const fs = require('fs');
 const User = require("../models/User");
 const server = require("../server");
 const authController = require("../controllers/authController");
@@ -400,11 +401,11 @@ describe("Authentication controller testing", function () {
                 .request(server)
                 .post("/api/v1/auth/register")
                 .send(user);
-    
+
             //console.log(resp);
             token = resp.body.token;
         });
-        
+
         it("check endpoint if new ( updated ) user name is not empty & return status code 400", async function () {
             this.timeout(6000);
 
@@ -448,20 +449,19 @@ describe("Authentication controller testing", function () {
                 .request(server)
                 .put("/api/v1/auth/update")
                 .set("Cookie", `token=${token}`)
-                .send({ email: 'testmail.com' });
+                .send({ email: "testmail.com" });
 
             //console.log(resp);
             expect(resp).to.have.status(400);
             expect(resp.body).to.be.deep.equal({
                 success: false,
-                error:
-                    "Unesite ispravnu email adresu; ",
+                error: "Unesite ispravnu email adresu; ",
             });
         });
 
         it("check endpoint if endpoint returns valid updated user data & status code", async function () {
             this.timeout(6000);
-            const updatedUser = { name: 'Pera', email: 'pera@mail.com' };
+            const updatedUser = { name: "Pera", email: "pera@mail.com" };
             const resp = await chai
                 .request(server)
                 .put("/api/v1/auth/update")
@@ -471,11 +471,10 @@ describe("Authentication controller testing", function () {
             //console.log(resp);
             expect(resp).to.have.status(200);
             expect(resp.body.data).to.deep.include(updatedUser);
-           
         });
     });
 
-    describe('# User password change', function() {
+    describe("# User password change", function () {
         const user = {
             name: "Test",
             email: "test@mail.com",
@@ -491,57 +490,68 @@ describe("Authentication controller testing", function () {
                 .request(server)
                 .post("/api/v1/auth/register")
                 .send(user);
-    
+
             //console.log(resp);
             token = resp.body.token;
         });
 
-        it('check endpoint if new password is shorter than 7 characters & return status code 400', async function() {
+        it("check endpoint if new password is shorter than 7 characters & return status code 400", async function () {
             this.timeout(6000);
             const resp = await chai
                 .request(server)
                 .put("/api/v1/auth/updatepassword")
                 .set("Cookie", `token=${token}`)
-                .send({newPassword: 'short'});
+                .send({ newPassword: "short" });
 
             //console.log(resp);
             expect(resp).to.have.status(400);
-            expect(resp.body).to.be.deep.equal({success: false, error: 'Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera; '});
-        })  
+            expect(resp.body).to.be.deep.equal({
+                success: false,
+                error:
+                    "Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera; ",
+            });
+        });
 
-        it('check endpoint if new password is longer than 15 characters & return status code 400', async function() {
+        it("check endpoint if new password is longer than 15 characters & return status code 400", async function () {
             this.timeout(6000);
             const resp = await chai
                 .request(server)
                 .put("/api/v1/auth/updatepassword")
                 .set("Cookie", `token=${token}`)
-                .send({newPassword: 'longerThan15Characters'});
+                .send({ newPassword: "longerThan15Characters" });
 
             //console.log(resp);
             expect(resp).to.have.status(400);
-            expect(resp.body).to.be.deep.equal({success: false, error: 'Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera; '});
-        }) 
+            expect(resp.body).to.be.deep.equal({
+                success: false,
+                error:
+                    "Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera; ",
+            });
+        });
 
-        it('check endpoint if new password is valid but current password is incorect & return status code 401', async function() {
+        it("check endpoint if new password is valid but current password is incorect & return status code 401", async function () {
             this.timeout(6000);
             const resp = await chai
                 .request(server)
                 .put("/api/v1/auth/updatepassword")
                 .set("Cookie", `token=${token}`)
-                .send({currentPassword: '123456', newPassword: '12345678'});
+                .send({ currentPassword: "123456", newPassword: "12345678" });
 
             //console.log(resp);
             expect(resp).to.have.status(401);
-            expect(resp.body).to.be.deep.equal({success: false, error: 'Unesite ispravnu sadašnju šifru'});
-        }) 
+            expect(resp.body).to.be.deep.equal({
+                success: false,
+                error: "Unesite ispravnu sadašnju šifru",
+            });
+        });
 
-        it('check endpoint for token response & return status code 200', async function() {
+        it("check endpoint for token response & return status code 200", async function () {
             this.timeout(6000);
             const resp = await chai
                 .request(server)
                 .put("/api/v1/auth/updatepassword")
                 .set("Cookie", `token=${token}`)
-                .send({currentPassword: '1234567', newPassword: '12345678'});
+                .send({ currentPassword: "1234567", newPassword: "12345678" });
 
             //console.log(resp);
             expect(resp).to.have.property("statusCode", 200);
@@ -550,100 +560,136 @@ describe("Authentication controller testing", function () {
                 .to.have.property("token")
                 .that.is.a("string")
                 .and.have.length.above(10);
-            expect(resp.body.token).to.not.equal(token);    
-        }) 
+            expect(resp.body.token).to.not.equal(token);
+        });
+    });
 
-    })
-
-    describe('# User reset password link ', function() {
-
+    describe("# User reset password link ", function () {
         // User already persist in the database, saved in previous test
 
-        it('check endpoint if provided email doesnt exist in database & return status code 404', async function() {
+        it("check endpoint if provided email doesnt exist in database & return status code 404", async function () {
             this.timeout(6000);
             const resp = await chai
                 .request(server)
                 .post("/api/v1/auth/resetpassword")
-                .send({email: 'notExisting@mail.com'});
+                .send({ email: "notExisting@mail.com" });
 
             //console.log(resp);
             expect(resp).to.have.status(404);
-            expect(resp.body).to.be.deep.equal({success: false, error: 'Ne postoji korisnik sa tom e-mail adresom!'});
-        })  
+            expect(resp.body).to.be.deep.equal({
+                success: false,
+                error: "Ne postoji korisnik sa tom e-mail adresom!",
+            });
+        });
 
-        it('check endpoint if reset password link is sent to users email & return status code 200', async function() {
+        it("check endpoint if reset password link is sent to users email & return status code 200", async function () {
             this.timeout(6000);
             const resp = await chai
                 .request(server)
                 .post("/api/v1/auth/resetpassword")
-                .send({email: 'test@mail.com'});
+                .send({ email: "test@mail.com" });
 
             //console.log(resp);
             expect(resp).to.have.status(200);
-            expect(resp.body).to.be.deep.equal({success: true, data: 'Email sent'});
-        })           
-    })
+            expect(resp.body).to.be.deep.equal({
+                success: true,
+                data: "Email sent",
+            });
+        });
+    });
 
-    describe.only('# User reset password over reset link ', function() {
-
+    describe("# User reset password over reset link ", function () {
         // User already persist in the database, saved in previous test
 
-        it('check endpoint if provided password is shorter than 7 characters & return status code 400', async function() {
+        it("check endpoint if provided password is shorter than 7 characters & return status code 400", async function () {
             this.timeout(6000);
             const resp = await chai
                 .request(server)
                 .put("/api/v1/auth/resetpassword/tokenPlaceholder")
-                .send({password: '123'});
+                .send({ password: "123" });
 
             //console.log(resp);
             expect(resp).to.have.status(400);
-            expect(resp.body).to.be.deep.equal({success: false, error: 'Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera; '});
-        })         
-
-        it('check endpoint if provided password is longer than 15 characters & return status code 400', async function() {
-            this.timeout(6000);
-            const resp = await chai
-                .request(server)
-                .put("/api/v1/auth/resetpassword/tokenPlaceholder")
-                .send({password: 'longerthan15Characters'});
-
-            //console.log(resp);
-            expect(resp).to.have.status(400);
-            expect(resp.body).to.be.deep.equal({success: false, error: 'Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera; '});
-        })   
-
-        it.only('check endpoint', async function() {
-            this.timeout(6000);
-            // pošaji reset password token i snimi ga u bazu 
-            let resp = await chai
-                .request(server)
-                .post("/api/v1/auth/resetpassword")
-                .send({email: 'test@mail.com'});
-            // iscupaj iz baze taj token
-            const user = await User.findOne({email: 'test@mail.com'});
-            const token = user.resetPasswordToken;
-
-            // nakon promene šifre, endpoint šalje novi token
-            const lastToken = user.tokens[user.tokens.length - 1].token;
-
-            resp = await chai
-                .request(server)
-                .put(`/api/v1/auth/resetpassword/${token}`)
-                .send({password: 'someNewPass'});
-
-            console.log(resp);
-            expect(resp).to.have.property("statusCode", 400);
-            expect(resp.body).to.have.property("success", true);
-            expect(resp.body)
-                .to.have.property("token")
-                .that.is.a("string")
-                .and.have.length.above(10);
-            expect(resp.body.token).to.not.equal(lastToken); 
-        })         
-
-        after((done) => {
-            mongoose.connection.close();
-            done();
+            expect(resp.body).to.be.deep.equal({
+                success: false,
+                error:
+                    "Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera; ",
+            });
         });
-    })
+
+        it("check endpoint if provided password is longer than 15 characters & return status code 400", async function () {
+            this.timeout(6000);
+            const resp = await chai
+                .request(server)
+                .put("/api/v1/auth/resetpassword/tokenPlaceholder")
+                .send({ password: "longerthan15Characters" });
+
+            //console.log(resp);
+            expect(resp).to.have.status(400);
+            expect(resp.body).to.be.deep.equal({
+                success: false,
+                error:
+                    "Šifra treba da sadrži slova i brojeve, 7 - 15 karaktera; ",
+            });
+        });
+
+        it("check endpoint if provided reset token isnt valid & return status code 404", async function () {
+            this.timeout(6000);
+            const resp = await chai
+                .request(server)
+                .put("/api/v1/auth/resetpassword/tokenPlaceholder")
+                .send({ password: "validPass" });
+
+            //console.log(resp);
+            expect(resp).to.have.status(400);
+            expect(resp.body).to.be.deep.equal({
+                success: false,
+                error:
+                    "Neispravan token. Obratite pažnju da imate 10 minuta od momenta pristizanja emaila da resetujete zaboravljenu šifru.",
+            });
+        });
+    });
+
+    describe.only("# Update user avatar", function () {
+
+        const user = {
+            name: "Test",
+            email: "test@mail.com",
+            password: "1234567",
+            confirmPassword: "1234567",
+        };
+
+        let token;
+
+        before(async function () {
+            await User.deleteMany({});
+            const resp = await chai
+                .request(server)
+                .post("/api/v1/auth/register")
+                .send(user);
+
+            //console.log(resp);
+            token = resp.body.token;
+        });
+
+        it("check endpoint if no avatar image is present & return status code 400", async function () {
+            this.timeout(6000);
+            const resp = await chai
+                .request(server)
+                .put("/api/v1/auth/avatar")
+                .set("Cookie", `token=${token}`)
+                
+            console.log(resp);
+            expect(resp).to.have.status(400);
+            expect(resp.body).to.be.deep.equal({
+                success: false,
+                error:
+                    "Niste izabrali avatar sliku",
+            });
+        });
+    });
+    after((done) => {
+        mongoose.connection.close();
+        done();
+    });
 });
