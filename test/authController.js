@@ -4,6 +4,7 @@ const expect = chai.expect;
 
 const mongoose = require("mongoose");
 const fs = require('fs');
+const path = require('path');
 const User = require("../models/User");
 const server = require("../server");
 const authController = require("../controllers/authController");
@@ -650,7 +651,7 @@ describe("Authentication controller testing", function () {
         });
     });
 
-    describe.only("# Update user avatar", function () {
+    describe("# Update user avatar", function () {
 
         const user = {
             name: "Test",
@@ -679,7 +680,7 @@ describe("Authentication controller testing", function () {
                 .put("/api/v1/auth/avatar")
                 .set("Cookie", `token=${token}`)
                 
-            console.log(resp);
+            //console.log(resp);
             expect(resp).to.have.status(400);
             expect(resp.body).to.be.deep.equal({
                 success: false,
@@ -687,9 +688,108 @@ describe("Authentication controller testing", function () {
                     "Niste izabrali avatar sliku",
             });
         });
+
+        it("check endpoint if selected file is not png|jpg|jpeg|bmp format & return status code 400", async function () {
+            this.timeout(6000);
+            const resp = await chai
+                .request(server)
+                .put("/api/v1/auth/avatar")
+                .set("Cookie", `token=${token}`)
+                .attach('avatar', fs.readFileSync(path.join(__dirname, '/testInputs/wrongFileType.txt')), 'wrongFileType.txt');
+                
+            //console.log(resp);
+            expect(resp).to.have.status(400);
+            expect(resp.body).to.be.deep.equal({
+                success: false,
+                error:
+                    "Izabrani fajl nije slika, ponovite unos i izaberite sliku",
+            });
+        });
+
+        it("check endpoint if selected file exceeds file limit of 5MB & return status code 400", async function () {
+            this.timeout(6000);
+            const resp = await chai
+                .request(server)
+                .put("/api/v1/auth/avatar")
+                .set("Cookie", `token=${token}`)
+                .attach('avatar', fs.readFileSync(path.join(__dirname, '/testInputs/largeImage.jpg')), 'largeImage.jpg');
+                
+            //console.log(resp);
+            expect(resp).to.have.status(400);
+            expect(resp.body).to.be.deep.equal({
+                success: false,
+                error:
+                    "Maksimalna veličina avatar slike je 5MB",
+            });
+        });
+
+        it("check endpoint if avatar image is successfully saved & return status code 200", async function () {
+            this.timeout(6000);
+            const resp = await chai
+                .request(server)
+                .put("/api/v1/auth/avatar")
+                .set("Cookie", `token=${token}`)
+                .attach('avatar', fs.readFileSync(path.join(__dirname, '/testInputs/normalImage.jpg')), 'normalImage.jpg');
+                
+            //console.log(resp);
+            expect(resp).to.have.status(200);
+            expect(resp.body).to.have.property('success', true);
+            
+            // remove test avatar iage from public folder
+            const removeFromPublic = resp.body.data.avatar;
+
+            if (!removeFromPublic.endsWith('.png')) {
+                fs.unlinkSync(`public/${removeFromPublic}`
+                )}
+        });
+
     });
-    after((done) => {
-        mongoose.connection.close();
-        done();
+
+    describe.only("# Delete user avatar", function () {
+
+        const user = {
+            name: "Test",
+            email: "test@mail.com",
+            password: "1234567",
+            confirmPassword: "1234567",
+        };
+
+        let token;
+
+        before(async function () {
+            await User.deleteMany({});
+            //registruj korisnika
+            let resp = await chai
+                .request(server)
+                .post("/api/v1/auth/register")
+                .send(user);
+
+            //console.log(resp);
+            token = resp.body.token;
+            // dodaj avatar logovanom korisniku
+            resp = await chai
+                .request(server)
+                .put("/api/v1/auth/avatar")
+                .set('Cookie', `token=${token}`)
+                .attach('avatar', fs.readFileSync(path.join(__dirname, '/testInputs/normalImage.jpg')), 'normalImage.jpg');
+        });
+
+        it("check endpoint if avatar image is successfully deleted & return status code 200", async function () {
+            this.timeout(6000);
+            const resp = await chai
+                .request(server)
+                .delete("/api/v1/auth/avatar")
+                .set('Cookie', `token=${token}`)
+                
+            //console.log(resp);
+            expect(resp).to.have.status(200);
+            expect(resp.body).to.have.property('success', true);
+            expect(resp.body.data).to.have.property('avatar', 'user/user-default.png');
+        });
+
+        after((done) => {
+            mongoose.connection.close();
+            done();
+        });
     });
 });

@@ -38,7 +38,7 @@ const errorHandler = (err, req, res, next) => {
 
     // greška koju vraca multer za limits - fileSize
     if (error.code === 'LIMIT_FILE_SIZE') {
-        const message = 'Maksimalna veličina avatar slike je 10MB';
+        const message = 'Maksimalna veličina avatar slike je 5MB';
         error = new ErrorResponse(message, 400);
     }
 
