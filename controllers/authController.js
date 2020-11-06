@@ -96,8 +96,10 @@ exports.register = asyncHandler(async (req, res, next) => {
         password  
     });
 
-    // slanje welcome emaila nakon uspesnog snimanja 
-    sendWelcomeEmail(user.name, user.email);
+    // slanje welcome emaila nakon uspesnog snimanja
+    if (process.env.NODE_ENV !== 'test') {
+        sendWelcomeEmail(user.name, user.email);
+    }
 
     // umesto ovoga ispod stavlja se response koji u sebi ukljucuju cookie
     await sendTokenResponse(user, 200, res, req);
@@ -252,17 +254,20 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 
     //slanje emaila sa linkom za reset
     try {
-        await sendResetPasswordEmail(
-            user.name, 
-            user.email, 
-            resetUrl);
-
+        if (process.env.NODE_ENV !== 'test') {
+            await sendResetPasswordEmail(
+                user.name, 
+                user.email, 
+                resetUrl);
+                
             console.log(`Uspešno poslata poruka na adresu ${user.email}`.green);
+        }
 
-            res.status(200).json({
-                success: true,
-                data: 'Email sent'
-            });
+
+        res.status(200).json({
+            success: true,
+            data: 'Email sent'
+        });
         
     } catch (error) {
         console.log(`Poruka nije poslata na adresu ${user.email}. Error message: ${error}`.red);
@@ -463,7 +468,9 @@ exports.deleteMe = asyncHandler(async (req, res, next) => {
     });
 
     // slanje emaila sa potvrdom brisanja svog accounta
-    sendCancelEmail(req.user.name, req.user.email);
+    if (process.env.NODE_ENV !== 'test') {
+        sendCancelEmail(req.user.name, req.user.email);
+    }
 
     res.status(200).json({
         success: true,

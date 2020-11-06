@@ -11,10 +11,17 @@ const authController = require("../controllers/authController");
 
 chai.use(chaihttp);
 
-describe("Authentication controller testing", function () {
+describe("Integration test - Authentication controller testing", function () {
     describe("# User Registration", function () {
-        beforeEach(async function () {
-            await User.deleteMany({});
+        beforeEach(function (done) {
+    
+            User.deleteMany({})
+                .then(() => {
+                    done();
+                })
+                .catch((err) => {
+                    done();
+                });
         });
 
         it("check endpoint if user name field is empty & return status code 401", function (done) {
@@ -565,7 +572,7 @@ describe("Authentication controller testing", function () {
         });
     });
 
-    describe("# User reset password link ", function () {
+    describe("# User reset password link", function () {
         // User already persist in the database, saved in previous test
 
         it("check endpoint if provided email doesnt exist in database & return status code 404", async function () {
@@ -584,7 +591,7 @@ describe("Authentication controller testing", function () {
         });
 
         it("check endpoint if reset password link is sent to users email & return status code 200", async function () {
-            this.timeout(6000);
+            this.timeout(12000);
             const resp = await chai
                 .request(server)
                 .post("/api/v1/auth/resetpassword")
@@ -745,7 +752,7 @@ describe("Authentication controller testing", function () {
 
     });
 
-    describe.only("# Delete user avatar", function () {
+    describe("# Delete user avatar", function () {
 
         const user = {
             name: "Test",
@@ -758,7 +765,7 @@ describe("Authentication controller testing", function () {
 
         before(async function () {
             await User.deleteMany({});
-            //registruj korisnika
+            // user register
             let resp = await chai
                 .request(server)
                 .post("/api/v1/auth/register")
@@ -766,7 +773,7 @@ describe("Authentication controller testing", function () {
 
             //console.log(resp);
             token = resp.body.token;
-            // dodaj avatar logovanom korisniku
+            // add avatar image
             resp = await chai
                 .request(server)
                 .put("/api/v1/auth/avatar")
@@ -785,6 +792,92 @@ describe("Authentication controller testing", function () {
             expect(resp).to.have.status(200);
             expect(resp.body).to.have.property('success', true);
             expect(resp.body.data).to.have.property('avatar', 'user/user-default.png');
+        });
+    });
+
+    describe("# User logout", function () {
+
+        const user = {
+            name: "Test",
+            email: "test@mail.com",
+            password: "1234567",
+            confirmPassword: "1234567",
+        };
+
+        let token;
+
+        beforeEach(async function () {
+            await User.deleteMany({});
+            // user register
+            let resp = await chai
+                .request(server)
+                .post("/api/v1/auth/register")
+                .send(user);
+
+            //console.log(resp);
+            token = resp.body.token;
+    
+        });
+
+        it("check endpoint if log out current user session & return status code 200", async function () {
+            this.timeout(6000);
+            const resp = await chai
+                .request(server)
+                .post("/api/v1/auth/logout")
+                .set('Cookie', `token=${token}`)
+                
+            //console.log(resp);
+            expect(resp).to.have.status(200);
+            expect(resp.body).to.be.deep.equal({success: true, data: 'Korisnik je uspešno izlogovan'});
+        });
+
+        it("check endpoint if log out all user sessions & return status code 200", async function () {
+            this.timeout(6000);
+            const resp = await chai
+                .request(server)
+                .post("/api/v1/auth/logoutAll")
+                .set('Cookie', `token=${token}`)
+                
+            //console.log(resp);
+            expect(resp).to.have.status(200);
+            expect(resp.body).to.be.deep.equal({success: true, data: 'Izlogovani ste sa svih uređaja'});
+        });
+    });
+
+    describe("# Delete user profile", function () {
+
+        const user = {
+            name: "Test",
+            email: "test@mail.com",
+            password: "1234567",
+            confirmPassword: "1234567",
+        };
+
+        let token;
+
+        before(async function () {
+            await User.deleteMany({});
+            // user register
+            let resp = await chai
+                .request(server)
+                .post("/api/v1/auth/register")
+                .send(user);
+
+            //console.log(resp);
+            token = resp.body.token;
+    
+        });
+
+        it("check endpoint if user wants to delete its profile & return status code 200", async function () {
+            this.timeout(6000);
+            const resp = await chai
+                .request(server)
+                .delete("/api/v1/auth/me")
+                .set('Cookie', `token=${token}`)
+                
+            //console.log(resp);
+            expect(resp).to.have.status(200);
+            expect(resp.body).to.be.deep.equal({success: true, data: 'User deleted'});
         });
 
         after((done) => {

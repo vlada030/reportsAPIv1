@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const sinon = require("sinon");
 const errorHandler = require("../middleware/errorHandler");
 
-describe("Check error handler middleware for different types of input errors", function () {
+describe("Unit test - Check error handler middleware for different types of input errors", function () {
     it("check if a CAST ERROR occurs", function () {
         let err = { name: "CastError" };
         let res = {

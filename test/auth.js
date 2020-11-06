@@ -13,7 +13,7 @@ dotenv.config({
     path: "./config/config.env",
 });
 
-describe("check for user identification middleware", function () {
+describe("Unit test - check for user identification middleware", function () {
     // u before se radi cleanup
     // before(function (done) {
 
