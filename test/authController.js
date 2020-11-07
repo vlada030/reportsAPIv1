@@ -3,8 +3,8 @@ const chaihttp = require("chai-http");
 const expect = chai.expect;
 
 const mongoose = require("mongoose");
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 const User = require("../models/User");
 const server = require("../server");
 const authController = require("../controllers/authController");
@@ -14,7 +14,6 @@ chai.use(chaihttp);
 describe("Integration test - Authentication controller testing", function () {
     describe("# User Registration", function () {
         beforeEach(function (done) {
-    
             User.deleteMany({})
                 .then(() => {
                     done();
@@ -659,7 +658,6 @@ describe("Integration test - Authentication controller testing", function () {
     });
 
     describe("# Update user avatar", function () {
-
         const user = {
             name: "Test",
             email: "test@mail.com",
@@ -685,14 +683,13 @@ describe("Integration test - Authentication controller testing", function () {
             const resp = await chai
                 .request(server)
                 .put("/api/v1/auth/avatar")
-                .set("Cookie", `token=${token}`)
-                
+                .set("Cookie", `token=${token}`);
+
             //console.log(resp);
             expect(resp).to.have.status(400);
             expect(resp.body).to.be.deep.equal({
                 success: false,
-                error:
-                    "Niste izabrali avatar sliku",
+                error: "Niste izabrali avatar sliku",
             });
         });
 
@@ -702,8 +699,14 @@ describe("Integration test - Authentication controller testing", function () {
                 .request(server)
                 .put("/api/v1/auth/avatar")
                 .set("Cookie", `token=${token}`)
-                .attach('avatar', fs.readFileSync(path.join(__dirname, '/testInputs/wrongFileType.txt')), 'wrongFileType.txt');
-                
+                .attach(
+                    "avatar",
+                    fs.readFileSync(
+                        path.join(__dirname, "/testInputs/wrongFileType.txt")
+                    ),
+                    "wrongFileType.txt"
+                );
+
             //console.log(resp);
             expect(resp).to.have.status(400);
             expect(resp.body).to.be.deep.equal({
@@ -719,14 +722,19 @@ describe("Integration test - Authentication controller testing", function () {
                 .request(server)
                 .put("/api/v1/auth/avatar")
                 .set("Cookie", `token=${token}`)
-                .attach('avatar', fs.readFileSync(path.join(__dirname, '/testInputs/largeImage.jpg')), 'largeImage.jpg');
-                
+                .attach(
+                    "avatar",
+                    fs.readFileSync(
+                        path.join(__dirname, "/testInputs/largeImage.jpg")
+                    ),
+                    "largeImage.jpg"
+                );
+
             //console.log(resp);
             expect(resp).to.have.status(400);
             expect(resp.body).to.be.deep.equal({
                 success: false,
-                error:
-                    "Maksimalna veličina avatar slike je 5MB",
+                error: "Maksimalna veličina avatar slike je 5MB",
             });
         });
 
@@ -736,24 +744,28 @@ describe("Integration test - Authentication controller testing", function () {
                 .request(server)
                 .put("/api/v1/auth/avatar")
                 .set("Cookie", `token=${token}`)
-                .attach('avatar', fs.readFileSync(path.join(__dirname, '/testInputs/normalImage.jpg')), 'normalImage.jpg');
-                
+                .attach(
+                    "avatar",
+                    fs.readFileSync(
+                        path.join(__dirname, "/testInputs/normalImage.jpg")
+                    ),
+                    "normalImage.jpg"
+                );
+
             //console.log(resp);
             expect(resp).to.have.status(200);
-            expect(resp.body).to.have.property('success', true);
-            
+            expect(resp.body).to.have.property("success", true);
+
             // remove test avatar iage from public folder
             const removeFromPublic = resp.body.data.avatar;
 
-            if (!removeFromPublic.endsWith('.png')) {
-                fs.unlinkSync(`public/${removeFromPublic}`
-                )}
+            if (!removeFromPublic.endsWith(".png")) {
+                fs.unlinkSync(`public/${removeFromPublic}`);
+            }
         });
-
     });
 
     describe("# Delete user avatar", function () {
-
         const user = {
             name: "Test",
             email: "test@mail.com",
@@ -777,8 +789,14 @@ describe("Integration test - Authentication controller testing", function () {
             resp = await chai
                 .request(server)
                 .put("/api/v1/auth/avatar")
-                .set('Cookie', `token=${token}`)
-                .attach('avatar', fs.readFileSync(path.join(__dirname, '/testInputs/normalImage.jpg')), 'normalImage.jpg');
+                .set("Cookie", `token=${token}`)
+                .attach(
+                    "avatar",
+                    fs.readFileSync(
+                        path.join(__dirname, "/testInputs/normalImage.jpg")
+                    ),
+                    "normalImage.jpg"
+                );
         });
 
         it("check endpoint if avatar image is successfully deleted & return status code 200", async function () {
@@ -786,17 +804,19 @@ describe("Integration test - Authentication controller testing", function () {
             const resp = await chai
                 .request(server)
                 .delete("/api/v1/auth/avatar")
-                .set('Cookie', `token=${token}`)
-                
+                .set("Cookie", `token=${token}`);
+
             //console.log(resp);
             expect(resp).to.have.status(200);
-            expect(resp.body).to.have.property('success', true);
-            expect(resp.body.data).to.have.property('avatar', 'user/user-default.png');
+            expect(resp.body).to.have.property("success", true);
+            expect(resp.body.data).to.have.property(
+                "avatar",
+                "user/user-default.png"
+            );
         });
     });
 
     describe("# User logout", function () {
-
         const user = {
             name: "Test",
             email: "test@mail.com",
@@ -816,7 +836,6 @@ describe("Integration test - Authentication controller testing", function () {
 
             //console.log(resp);
             token = resp.body.token;
-    
         });
 
         it("check endpoint if log out current user session & return status code 200", async function () {
@@ -824,11 +843,14 @@ describe("Integration test - Authentication controller testing", function () {
             const resp = await chai
                 .request(server)
                 .post("/api/v1/auth/logout")
-                .set('Cookie', `token=${token}`)
-                
+                .set("Cookie", `token=${token}`);
+
             //console.log(resp);
             expect(resp).to.have.status(200);
-            expect(resp.body).to.be.deep.equal({success: true, data: 'Korisnik je uspešno izlogovan'});
+            expect(resp.body).to.be.deep.equal({
+                success: true,
+                data: "Korisnik je uspešno izlogovan",
+            });
         });
 
         it("check endpoint if log out all user sessions & return status code 200", async function () {
@@ -836,16 +858,18 @@ describe("Integration test - Authentication controller testing", function () {
             const resp = await chai
                 .request(server)
                 .post("/api/v1/auth/logoutAll")
-                .set('Cookie', `token=${token}`)
-                
+                .set("Cookie", `token=${token}`);
+
             //console.log(resp);
             expect(resp).to.have.status(200);
-            expect(resp.body).to.be.deep.equal({success: true, data: 'Izlogovani ste sa svih uređaja'});
+            expect(resp.body).to.be.deep.equal({
+                success: true,
+                data: "Izlogovani ste sa svih uređaja",
+            });
         });
     });
 
     describe("# Delete user profile", function () {
-
         const user = {
             name: "Test",
             email: "test@mail.com",
@@ -865,7 +889,6 @@ describe("Integration test - Authentication controller testing", function () {
 
             //console.log(resp);
             token = resp.body.token;
-    
         });
 
         it("check endpoint if user wants to delete its profile & return status code 200", async function () {
@@ -873,16 +896,19 @@ describe("Integration test - Authentication controller testing", function () {
             const resp = await chai
                 .request(server)
                 .delete("/api/v1/auth/me")
-                .set('Cookie', `token=${token}`)
-                
+                .set("Cookie", `token=${token}`);
+
             //console.log(resp);
             expect(resp).to.have.status(200);
-            expect(resp.body).to.be.deep.equal({success: true, data: 'User deleted'});
+            expect(resp.body).to.be.deep.equal({
+                success: true,
+                data: "User deleted",
+            });
         });
 
-        after((done) => {
-            mongoose.connection.close();
-            done();
-        });
+        // after((done) => {
+        //     mongoose.connection.close();
+        //     done();
+        // });
     });
 });

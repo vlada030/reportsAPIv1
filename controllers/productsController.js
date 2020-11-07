@@ -90,7 +90,7 @@ exports.createProduct = asyncHandler( async (req, res, next) => {
     if (!errors.isEmpty()) {
         return res.status(400).json({
             success: false,
-            data: errorsString
+            error: errorsString
         })
     }
 
@@ -128,7 +128,7 @@ exports.updateProduct = asyncHandler(async (req, res, next) => {
     if (!errors.isEmpty()) {
         return res.status(400).json({
             success: false,
-            data: errorsString
+            error: errorsString
         })
     }
     // dodavanje usera iz middleware tokena koji je modifikovao proizvod

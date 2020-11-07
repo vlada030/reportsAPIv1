@@ -37,23 +37,17 @@ router.route('/')
                 .isLength({ min: 1, max: 40 })
                 .trim(),
             body("brojZica", 'Broj žica provodnika je u intervalu 1 - 2500')
-                .isInt({ min: 1, max: 2500 })
-                .trim(),
+                .isInt({ min: 1, max: 2500 }),
             body("precnikZice", 'Prečnik žice komponente je u intervalu 0.2 - 3.75')
-                .isFloat({ min: 0.2, max: 3.75 })
-                .trim(),
+                .isFloat({ min: 0.2, max: 3.75 }),
             body("otpor", 'Vrednost otpora mora da bude u granicama 0.01 - 24')
-                .isFloat({ min: 0.01, max: 24 })
-                .trim(),
+                .isFloat({ min: 0.01, max: 24 }),
             body("debIzolacije", 'Debljina izolacije je u intervalu 0.1 - 9')
-                .isFloat({ min: 0.1, max: 9 })
-                .trim(),
+                .isFloat({ min: 0.1, max: 9 }),
             body("debPlasta", 'Debljina plašta je u intervalu 0 - 4')
-                .isFloat({ min: 0, max: 4 })
-                .trim(),
+                .isFloat({ min: 0, max: 4 }),
             body("spPrecnik", 'Spoljnji prečnik mora da bude u granicama 2 - 70')
-                .isFloat({ min: 2, max: 70 })
-                .trim(),
+                .isFloat({ min: 2, max: 70 }),
         ],
         createProduct
     );
@@ -73,34 +67,28 @@ router
                 .trim(),
             body("brojZica", "Broj žica provodnika je u intervalu 1 - 2500")
                 .optional()
-                .isInt({ min: 1, max: 2500 })
-                .trim(),
+                .isInt({ min: 1, max: 2500 }),
             body(
                 "precnikZice",
                 "Prečnik žice komponente je u intervalu 0.2 - 3.75"
             )
                 .optional()
-                .isFloat({ min: 0.2, max: 3.75 })
-                .trim(),
+                .isFloat({ min: 0.2, max: 3.75 }),
             body("otpor", "Vrednost otpora mora da bude u granicama 0.01 - 24")
                 .optional()
-                .isFloat({ min: 0.01, max: 24 })
-                .trim(),
+                .isFloat({ min: 0.01, max: 24 }),
             body("debIzolacije", "Debljina izolacije je u intervalu 0.1 - 9")
                 .optional()
-                .isFloat({ min: 0.1, max: 9 })
-                .trim(),
+                .isFloat({ min: 0.1, max: 9 }),
             body("debPlasta", "Debljina plašta je u intervalu 0 - 4")
                 .optional()
-                .isFloat({ min: 0, max: 4 })
-                .trim(),
+                .isFloat({ min: 0, max: 4 }),
             body(
                 "spPrecnik",
                 "Spoljnji prečnik mora da bude u granicama 2 - 70"
             )
                 .optional()
-                .isFloat({ min: 2, max: 70 })
-                .trim(),
+                .isFloat({ min: 2, max: 70 }),
         ],
         updateProduct
     )
