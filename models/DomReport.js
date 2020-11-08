@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const DomReportSchema = new mongoose.Schema({
     rb: {
         type: Number,
-        required: [true, 'Unesite redni broj izveštaja']
+        // required: [true, 'Unesite redni broj izveštaja']
     },
     
     MISBroj: {
@@ -36,7 +36,9 @@ const DomReportSchema = new mongoose.Schema({
 
     velDob: {
         type: String,
-        required: true
+        required: [true, 'Unesite veličinu doboša'],
+        trim: true,
+        maxlength: [7, 'Najduži string za oznaku velicine dobosa je 7 karaktera'],
     },
 
     duzina: {

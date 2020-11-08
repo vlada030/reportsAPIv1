@@ -705,9 +705,9 @@ describe("Integration test - Product Controller testing", function () {
             expect(resp.body).to.be.deep.equal({success: true, data: 'Proizvod je uspešno obrisan'});
         });
         
-        after((done) => {
-            mongoose.connection.close();
-            done();
-        });
+        // after((done) => {
+        //     mongoose.connection.close();
+        //     done();
+        // });
     })
 });

@@ -1,7 +1,7 @@
 {
   "name": "reportsapi",
   "version": "1.0.0",
-  "description": "prodyct codes, test reports",
+  "description": "product codes, test reports",
   "main": "server.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production node server.js",

@@ -2,4 +2,5 @@
 // require('./errorHandler');
 // require('./auth');
 // require('./authController');
-require('./productController');
+// require('./productController');
+require('./domReportsController');

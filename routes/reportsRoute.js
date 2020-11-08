@@ -49,6 +49,11 @@ router
                 .isNumeric()
                 .isInt({ gt: 1, lt: 3000 })
                 .trim(),
+            body("velDob", "String ne duzi od 7 karaktera")
+                .not()
+                .isEmpty()
+                .isLength({max: 7})
+                .trim(),
             body("neto", "Najmanja težina je 1kg, a najveća 5000kg")
                 .isNumeric()
                 .isInt({ gt: 1, lt: 5000 })
@@ -88,6 +93,11 @@ router
                 .optional()
                 .isNumeric()
                 .isInt({ gt: 1, lt: 3000 })
+                .trim(),
+            body("velDob", "String ne duzi od 7 karaktera")
+                .not()
+                .isEmpty()
+                .isLength({max: 7})
                 .trim(),
             body("neto", "Najmanja težina je 1kg, a najveća 5000kg")
                 .optional()
