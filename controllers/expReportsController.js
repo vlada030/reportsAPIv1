@@ -48,7 +48,7 @@ exports.getExpReport = asyncHandler( async(req, res, next) => {
         return next(
             new ErrorResponse(
                 `Izveštaj sa id brojem ${id} ne postoji`,
-                400
+                404
             )
         );
     }
@@ -152,7 +152,7 @@ exports.deleteExpReport = asyncHandler( async(req, res, next) => {
         return next(
             new ErrorResponse(
                 `Izveštaj sa id brojem ${id} ne postoji`,
-                400
+                404
             )
         );
     }

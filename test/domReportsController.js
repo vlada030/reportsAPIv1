@@ -599,7 +599,7 @@ describe("Integration test - Dom Reports controller testing", function () {
     
     describe('# Delete User Report', function() {
         
-        it("check endpoint if report MIS Number soent exist in the datatabase & return status code 200", async function () {
+        it("check endpoint if report MIS Number doesnt exist in the datatabase & return status code 200", async function () {
             const resp = await chai
                 .request(server)
                 .delete("/api/v1/reports/dom/12345678")
@@ -627,9 +627,9 @@ describe("Integration test - Dom Reports controller testing", function () {
             });
         });
         
-        after((done) => {
-            mongoose.connection.close();
-            done();
-        });
+        // after((done) => {
+        //     mongoose.connection.close();
+        //     done();
+        // });
     })
 });

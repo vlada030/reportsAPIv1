@@ -143,10 +143,12 @@ router
         [
             body("sifra", "Šifra se sastoji od 7 cifara")
                 .isNumeric()
+                .bail()
                 .isLength({ min: 7, max: 7 })
                 .trim(),
             body("godina", "Godina sadrži 4 cifre")
                 .isNumeric()
+                .bail()
                 .isLength({ min: 4, max: 4 })
                 .trim(),
             // body("dobos_1", "Broj na stranici ili MIS Broj doboša može imati 7 - 10 karaktera")
@@ -189,11 +191,13 @@ router
             body("sifra", "Šifra se sastoji od 7 cifara")
                 .optional()
                 .isNumeric()
+                .bail()
                 .isLength({ min: 7, max: 7 })
                 .trim(),
             body("godina", "Godina sadrži 4 cifre")
                 .optional()
                 .isNumeric()
+                .bail()
                 .isLength({ min: 4, max: 4 })
                 .trim(),
             // custom validator za sva polja dobos / duzina
