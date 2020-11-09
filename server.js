@@ -81,10 +81,21 @@ app.use(helmet());
 // see https://expressjs.com/en/guide/behind-proxies.html
 //app.set('trust proxy', 1);
  
-const limiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // 10 minutes
-    max: 200 // limit each IP to 100 requests per windowMs
-  });
+
+// ukoliko se pokrece test ogranici vrednost na 500 jer ima preko 200 testa
+let limiter;
+
+if (process.env.NODE_ENV === 'test') {
+    limiter = rateLimit({
+        windowMs: 10 * 60 * 1000, // 10 minutes
+        max: 800 // limit each IP to 100 requests per windowMs
+    });
+} else {
+    limiter = rateLimit({
+        windowMs: 10 * 60 * 1000, // 10 minutes
+        max: 100 // limit each IP to 100 requests per windowMs
+    });
+}
    
 //  apply to all requests
 app.use(limiter);

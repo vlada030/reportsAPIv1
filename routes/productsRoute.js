@@ -17,6 +17,7 @@ router.route('/')
         [
             body("sifra")
                 .isNumeric()
+                .bail()
                 .isLength({ min: 7, max: 7 })
                 .withMessage('Šifra proizvoda mora da sadrži 7 broja')
                 .custom(async (value) => {

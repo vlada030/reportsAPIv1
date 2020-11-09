@@ -83,6 +83,22 @@ describe("Integration test - Product Controller testing", function () {
             });
         });
 
+        it("check endpoint if product code is not a number & return status code 400", async function () {
+            product.sifra = "notNumb";
+            const resp = await chai
+                .request(server)
+                .post("/api/v1/products")
+                .set("Cookie", `token=${token}`)
+                .send(product);
+
+            //console.log(resp);
+            expect(resp).to.have.status(400);
+            expect(resp.body).to.be.deep.equal({
+                success: false,
+                error: "Invalid value; ",
+            });
+        });
+
         it("check endpoint if product name is less than 2 characters long & return status code 400", async function () {
             product.sifra = 1111111;
             product.proizvod = "";
