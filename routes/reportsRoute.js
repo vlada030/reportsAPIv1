@@ -47,7 +47,7 @@ router
                 .trim(),
             body("duzina", "Najmanja dužina je 1m, a najveća 3000m")
                 .isNumeric()
-                .isInt({ gt: 1, lt: 3000 })
+                .isInt({ gt: 0, lt: 3000 })
                 .trim(),
             body("velDob", "String ne duzi od 7 karaktera")
                 .not()
@@ -92,9 +92,10 @@ router
             body("duzina", "Najmanja dužina je 1m, a najveća 3000m")
                 .optional()
                 .isNumeric()
-                .isInt({ gt: 1, lt: 3000 })
+                .isInt({ gt: 0, lt: 3000 })
                 .trim(),
             body("velDob", "String ne duzi od 7 karaktera")
+                .optional()
                 .not()
                 .isEmpty()
                 .isLength({max: 7})

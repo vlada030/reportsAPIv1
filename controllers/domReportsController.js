@@ -94,7 +94,12 @@ exports.getDomReport = asyncHandler(async (req, res, next) => {
 exports.updateDomReport = asyncHandler(async (req, res, next) => {
     req.body.updatedByUser = req.user.id;
     const MISBroj = req.params.id;
-    
+    // ova provera je stavljena ovde da se baza sto manje opterecuje
+    let report = await DomReport.findOne({ MISBroj });
+
+    if (!report) {
+        return next(new ErrorResponse(`Izveštaj sa MIS brojem ${MISBroj} ne postoji`, 404));
+    }
     // cupanje errors iz express-validatora
     const errors = validationResult(req);
     const errorsString = errors.array().reduce((acc, val) => {
@@ -110,12 +115,6 @@ exports.updateDomReport = asyncHandler(async (req, res, next) => {
         })
     }
 
-    // proveri da li izveštaj postoji nakon validacije, da se ne opterecuje baza bezveze
-    let report = await DomReport.findOne({ MISBroj });
-
-    if (!report) {
-        return next(new ErrorResponse(`Izveštaj sa MIS brojem ${MISBroj} ne postoji`, 400));
-    }
 
 
     report = await DomReport.findOneAndUpdate(
