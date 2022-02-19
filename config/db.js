@@ -7,8 +7,6 @@ const connectDB = async () => {
     const conn = await mongoose.connect(mongoURI, {
         // ovo se ubacuje da nam nebi u konzoli izbacivalo upozorenja
         useNewUrlParser: true,
-        useCreateIndex: true,
-        useFindAndModify: false,
         useUnifiedTopology: true
     });
 
