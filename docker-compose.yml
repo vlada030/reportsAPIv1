@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  node-express-app:
+    build: .
+    ports: 
+      - '3000:3000'
+    volumes:
+      # - ./:/app:ro
+      # umesto jednog volume, linije iznad, pravim pojedinacne jer iako je postavljen dockerignore kreiranje volume PREKOPIRA SAV SADRZAJ koji se seruje TAKO DA PREKOPIRA I FAJLOVE IZ DOCKERIGNORE PA MORA OVAKO
+      - ./config:/app/config:ro
+      - ./controllers:/app/controllers:ro
+      - ./middleware:/app/middleware:ro
+      - ./models:/app/models:ro
+      - ./public:/app/public:ro
+      - ./routes:/app/routes:ro
+      - ./utils:/app/utils:ro
+      - /app/node_modules
+    env_file:
+      - ./config.env

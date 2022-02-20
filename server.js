@@ -28,7 +28,7 @@ const usersRoute = require('./routes/usersRoute');
 
 // ENV fajl nije u root folderu zato mora da se navede putanja
 dotenv.config({
-    path: "./config/config.env"
+    path: "./config.env"
 });
 
 // pozivanje konekcije nakon .env, a pre app
@@ -118,7 +118,7 @@ app.use('/api/v1/users', usersRoute);
 // pozivanje custom errorHandlera koji se inicijalizira preko next iz controllera
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => console.log(`Server is running in ${process.env.NODE_ENV} mode on port ${PORT}`.brightYellow));
 
 // ovde prenosimo resavanje mongodb greske

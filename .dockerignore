@@ -1,0 +1,8 @@
+config.env*
+node_modules
+Dockerfile*
+.git
+.gitignore
+*.md
+_formatCSVInput
+docker-compose*
